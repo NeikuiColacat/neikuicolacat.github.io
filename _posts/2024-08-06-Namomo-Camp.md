@@ -113,6 +113,6 @@
 
 ---
 
-哦还和航哥去杭州看童锦程网红酒吧，但是舍不得几千块钱的卡座就没进去看了 ， 只能在门口驻足观望了 ，穷鬼感觉过不起纸醉金迷的生活
+<!-- 哦还和航哥去杭州看童锦程网红酒吧，但是舍不得几千块钱的卡座就没进去看了 ， 只能在门口驻足观望了 ，穷鬼感觉过不起纸醉金迷的生活
 
-![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/IMG_20240802_224609.jpg?raw=true)
+![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/IMG_20240802_224609.jpg?raw=true) -->
