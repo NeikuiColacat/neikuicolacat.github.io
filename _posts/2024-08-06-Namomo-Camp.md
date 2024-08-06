@@ -107,12 +107,12 @@
 - dls评价线段树为金牌题科技 ， 因为金牌题都不考线段树
 - 不需要会什么算法就银牌题了 ？ 此点有待考察
 
-![exam](/images/5684F80E053342F7DB88195D74DCC0B7.jpg)
+![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/5684F80E053342F7DB88195D74DCC0B7.jpg?raw=true)
 
-![exam](/images/IMG_20240726_094309.jpg)
+![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/IMG_20240726_094309.jpg?raw=true)
 
 ---
 
-哦还和航哥去杭州逛了童锦程开的酒吧，但是舍不得几千块钱的卡座就没进去看了 ， 穷鬼感觉过不起纸醉金迷的生活
+哦还和航哥去杭州看童锦程网红酒吧，但是舍不得几千块钱的卡座就没进去看了 ， 只能在门口驻足观望了 ，穷鬼感觉过不起纸醉金迷的生活
 
-![exam](/images/IMG_20240802_224609.jpg)
+![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/IMG_20240802_224609.jpg?raw=true)
