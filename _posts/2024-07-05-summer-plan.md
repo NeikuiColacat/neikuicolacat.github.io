@@ -15,3 +15,9 @@
 - 补完 div2
 - 学个tarjan补div3
 - 做个abc和arc
+
+## 2024 8 10
+
+- div2
+- 点分治
+- ARC ，ABC
