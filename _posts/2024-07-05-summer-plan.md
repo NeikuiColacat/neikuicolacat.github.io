@@ -21,3 +21,7 @@
 - div2
 - 点分治
 - ARC ，ABC
+
+## 2024 8 14
+
+fk the plan
