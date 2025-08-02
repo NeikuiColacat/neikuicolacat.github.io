@@ -64,3 +64,16 @@ __global__ void mamutl_kernel_cu_fp32(const float* input, const float* weight, f
   }
 }
 ```
+
+## 对于 Swiglu 的一些理解
+
+1. 原来的vec通过两个Linear层获得 a，b
+2. Swiglu = a * swish(b) , 
+3. 其中 * 为逐点相乘，swish(x) = x * sigmoid(x) , swish相当于一个优化的relu
+
+## 对于 cublas 的一些细节
+
+cublas 做 gemm 为 列主序 ， 宿主机存矩阵为行主序
+
+使用列主序访问 矩阵相当于 做 矩阵转置 ， 利用这一个性质 加上 矩阵乘法转置性质 ， 可以无损转置
+
