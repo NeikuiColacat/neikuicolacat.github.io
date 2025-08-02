@@ -65,6 +65,70 @@ __global__ void mamutl_kernel_cu_fp32(const float* input, const float* weight, f
 }
 ```
 
+## 有关于mha算子
+
+mha蒜子的实现需要用到多个内存区域，包括kv cache ， query ， score ， output等
+
+不熟悉的话其实写算子的时候做内存寻址定位 ，写出偏移量表达式思维负担挺大的
+
+其实应该单独再开一个辅助类帮助定位内存地址的。只不过有点懒就算了。
+
+实现的时候其实是统一按照 `每个block对应一个注意力头，block内每个thread负责一个timestep` 来设计的
+
+其实应该利用block 和 thread 可以做成多个维度组合的这个特性 ， 应该可以省去很多内存寻址的麻烦
+
+## 关于手搓argmax用于求一块内存最大值与其下标
+
+一般来说做块内规约
+
+blockdim / warpSize < warpSize
+
+用这个特性就可以吧多个warp的结果规约到一个warp
+
+```cpp
+__forceinline__ __device__ void block_reduce_argmax(float& val, size_t& ptr, float* shared_value,
+                                                    size_t* shared_ptr) {
+  
+  int lane_id = threadIdx.x % warpSize;
+  int warp_id = threadIdx.x / warpSize;
+
+  warp_reduce_argmax(val, ptr);
+
+  __syncthreads();
+  if (lane_id == 0) {
+    shared_value[warp_id] = val;
+    shared_ptr[warp_id] = ptr;
+  }
+
+  __syncthreads();
+  if (threadIdx.x < blockDim.x / warpSize) {
+    val = shared_value[lane_id];
+    ptr = shared_ptr[lane_id];
+  } else {
+    val = 0;
+    ptr = SIZE_MAX;
+  }
+
+  if (warp_id == 0) {
+    warp_reduce_argmax(val, ptr);
+  }
+}
+```
+
+## 有关于使用gpu加速排序算法
+
+最近看了看nv的thrust库，发现并发编程其实非常适用于一类情况
+
+即运算和数据类型构成一个带幺元的半群结构
+
+这样的话在做规约会非常方便，有点类似于线段树做merge时候的操作
+
+比如说排序，排序的比较操作就可以看成是一个带幺元的半群结构，在规约的时候就可以直接用warp reduce的方式来做
+
+事实上存在双调排序之类的算法，利用gpu并发特性感觉能做很多有意思之前不敢想的事情。
+
+再议。
+
 ## 对于 Swiglu 的一些理解
 
 1. 原来的vec通过两个Linear层获得 a，b
