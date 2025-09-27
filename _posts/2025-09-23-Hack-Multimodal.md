@@ -50,6 +50,31 @@ MLM : 把文本随机mask掉，让模型通过图像信息对文本信息做完�
 
 一个有意思的现象 ： 第一步现在vision上pre train ， 然后把 mha权重froze再pre train文本，效果不错。但是反过来就不太行，可能说明视觉这一块包含的信息熵还是很多，需要比较多的模型参数去处理视觉信息。
 
+
+### BLIP
+
+ALBEF团队做的进一步工作
+
+基本上就是ALBEF基础上 ITM + MLM + LM 三种loss
+
+Bi-Self-att/Causal-Self-att(做LM的时候由于不能看后面的token所以得换成Causal) -> Cross-att(做ITC的时候关闭) -> Feed-Forward
+
+使用bootstrapping方法左脚踩右脚上天
+
+先用noisy data预训练一个BLIP ，然后用一部分干净的dataset fine-tune出来一个captioner和filter，用来生成大量干净数据,用新的数据集再pre-train一个BLIP
+
+左脚踩右脚上天这一块
+
+### CoCa
+
+使用Decoder Only ，全都用的Causal att，避免多次forward从而加快训练速度
+
+### BEIT v3
+
+就是一个VLMO，不过统一一个MDM作为Loss function去做scale up
+
+把图像切成token之后同样看成一门语言然后和文本信息去做处理
+
 #### DAY1 总结
 
 由于对多模态模型不太熟悉所以扫了一遍 text 和 vision的多模态模型
@@ -60,5 +85,18 @@ MLM : 把文本随机mask掉，让模型通过图像信息对文本信息做完�
 
 ---
 
+## DAY2
 
+### RGB-D信息融合方式
 
+1. early fusion 
+
+直接拼成4通道或者HHA编码拼成6通道送进CNN里面卷
+
+2. feature-level-fusion 
+
+先用独立的模型抽特征，抽完送到中间层做通道拼接或者加权求和
+
+3. multi-stage fusion
+
+模型 低层 中层 高层 都做融合
