@@ -91,7 +91,7 @@ Bi-Self-att/Causal-Self-att(做LM的时候由于不能看后面的token所以得
 
 3. multi-stage fusion 模型 低层 中层 高层 都做融合
 
-## 对抗样本攻击方式 
+## 对抗样本攻击方式 (大部分基于梯度)
 
 之前做的都是infra类型的工作，跨到模型攻防这一块步子迈大了感觉扯到蛋了
 
@@ -99,7 +99,7 @@ Bi-Self-att/Causal-Self-att(做LM的时候由于不能看后面的token所以得
 
 先扫一眼关于这方面的[综述文献](https://arxiv.org/abs/1712.07107)看看常用hack模型的方法
 
-#### Optimized Perturbation
+### Optimized Perturbation
 
 将寻找的对抗样本和原始样本之间的扰动写成损失函数的形式
 
@@ -107,11 +107,11 @@ Bi-Self-att/Causal-Self-att(做LM的时候由于不能看后面的token所以得
 
 将问题转变为一个数学优化问题，使用SGD等方式可构造出来
 
-#### Constraint Peturbation
+### Constraint Peturbation
 
 依然将扰动写成损失函数，但是只要扰动在可接受范围内，损失归位0
 
-#### FGSM 经典攻击算法 ~~熊猫小图片这一块~~ 
+### FGSM 经典攻击算法 ~~熊猫小图片这一块~~ 
 
 x_adv = x + epsilon * sign
 
@@ -119,15 +119,15 @@ x_adv = x + epsilon * sign
 
 Loss即一个设计让模型预测失败的交叉熵
 
-#### I-FGSM 加一个alpha超参数多次迭代
+### I-FGSM 加一个alpha超参数多次迭代
 
-#### PGD 多次迭代的时候设定超参数epsilon，扰动超过了就投影回去
+### PGD 多次迭代的时候设定超参数epsilon，扰动超过了就投影回去
 
 总结：接着再看了一些R+FGSM、MI-FGSM,基本上就是把深度学习训练模型常见的一些方法拿到生成对抗样本上来（动量法、随机噪声等）
 
-#### JSMA 求导雅可比矩阵，对应梯度高的像素优先扰动，根据梯度信息构造显著性分数，对显著性分数高的像素做一个小幅度扰动，依次迭代
+### JSMA 求导雅可比矩阵，对应梯度高的像素优先扰动，根据梯度信息构造显著性分数，对显著性分数高的像素做一个小幅度扰动，依次迭代
 
-#### DeepFool
+### DeepFool
 
 假设线性分类器决策边界是一个超平面，那么最小扰动就是样本到超平面的垂直距离
 
@@ -136,7 +136,7 @@ Loss即一个设计让模型预测失败的交叉熵
 假设有k个类别，那么就有k-1个超平面，使用一阶泰勒展开近似，选择距离最近的那个超平面走去，依次迭代生成对抗样本
 
 
-#### C&W 攻击
+### C&W 攻击
 
 依然是类似FGSM攻击，基于梯度
 
@@ -146,7 +146,7 @@ Loss即一个设计让模型预测失败的交叉熵
 
 c使用二分搜索确认 ，loss用于让模型错误分类，设计自由度较大
 
-#### ZOO攻击（黑盒）
+### ZOO攻击（黑盒）
 
 相当于黑盒版本的CW
 
@@ -160,13 +160,13 @@ c使用二分搜索确认 ，loss用于让模型错误分类，设计自由度�
 
 图像切割为若干个patch，使用估计的梯度大小和扰动幅度刻画patch的重要性，然后优先更新关键像素
 
-#### 通用扰动（Universal Adversarial Perturbation, UAP）
+### 通用扰动（Universal Adversarial Perturbation, UAP）
 
 在一个数据集里遍历样本，对于一个样本使用DeepFool算法找到最小扰动ri，然后把ri加到总扰动v中
 
 假设总扰动v范数大于epsilon，则投影回去，与PGD的手法类似
 
-#### 使用GAN等生成网络生成对抗样本
+### 使用GAN等生成网络生成对抗样本
 
 先训一个生成器，输入latent variable z ， 吐出自然图片
 
@@ -174,9 +174,23 @@ c使用二分搜索确认 ，loss用于让模型错误分类，设计自由度�
 
 再latent space里面做扰动，让添加扰动的latent variable进入生成器后生成对抗样本
 
-#### 可迁移攻击
+### 可迁移攻击
 
 让生成的对抗样本在多个模型上有效，从而让对抗样本具有可迁移性
+
+
+## Patch 类型攻击/防御
+
+打算看看 Revisiting Adversarial Patch Defenses on Object Detectors (ICCV 2025) 这篇论文
+
+构建了一个数据集APDE，用于给对抗patch 攻击防御方法做benchmark
+
+使用白盒攻击构造patch，基于11种目标检测器做训练
+
+给出了mIoU作为Defence性能的评价metrics
+
+NAP类型的补丁高频信息跟非NAP类型的差不多，但是FID-Score不同，数据分布差异较大
+
 
 
 ## RGB-D模型 
