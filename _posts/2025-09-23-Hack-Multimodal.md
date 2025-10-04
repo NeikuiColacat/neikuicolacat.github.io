@@ -223,10 +223,31 @@ Adversarial Examples for Semantic Segmentation and Object Detection 打算看看
 
 打算再看看DPATCH这篇论文
 
+然后再看看几个攻击RGB-D模型的论文，查看现有攻击思路
+
+Dpatch 的放置位置不影响攻击效果（不管是固定左上角或者随机放置）
+
+补丁大小越大攻击效果越好
+
+targeted攻击将目标类别设置为cow或者tv效果最好，和设置为其他类别有显著差异
+
+该方法同时具有跨数据集和跨模型攻击能力
+
+Dpatch的原理就是强行吸引检测器的ROI，让检测器的注意力都吸引到patch上。
+
+---
+
+打算再看看On Physical Adversarial Patches for Object Detection这篇论文，看看怎么能攻击自动驾驶（让研究落地到物理世界）
+
+
 
 ## RGB-D模型 
 
-尝试先从显著性检测任务做起，目前挑选了以下几个模型 ：
+
+### 目标检测任务
+
+
+### 显著性检测任务，目前挑选了以下几个模型 ：
 
 JL-DCF（学术界引用量最高，benchmark 常用 baseline）
 
