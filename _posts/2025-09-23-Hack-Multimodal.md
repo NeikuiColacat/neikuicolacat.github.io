@@ -239,49 +239,22 @@ Dpatch的原理就是强行吸引检测器的ROI，让检测器的注意力都�
 
 打算再看看On Physical Adversarial Patches for Object Detection这篇论文，看看怎么能攻击自动驾驶（让研究落地到物理世界）
 
+### 显著性检测任务，目前挑选了以下几个模型
 
+D3Net（深度去噪思路，适合验证攻击是否能绕过鲁棒性设计）
 
-## RGB-D模型 
+三分支结构：RGB + RGB-D + D
 
+每个分支使用 VGG16 作为backbone 加上 FPN(直接contatenation，不是传统addition)
 
-### 目标检测任务
+使用一个DDU控制是否使用Depth信息，如果RGB输出的特征与Depth输出特征差异过大，则关闭Depth
 
-
-### 显著性检测任务，目前挑选了以下几个模型 ：
+---
 
 JL-DCF（学术界引用量最高，benchmark 常用 baseline）
 
 BBS-Net（轻量化，工业界常用，能体现应用价值）
 
-D3Net（深度去噪思路，适合验证攻击是否能绕过鲁棒性设计）
+### 目标检测任务
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+再议
