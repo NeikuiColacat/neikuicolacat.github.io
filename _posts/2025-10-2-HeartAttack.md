@@ -52,3 +52,10 @@ ECG波形数据，12路波形
 
 ## Multimodal AI to forecast arrhythmic death in hypertrophic cardiomyopathy
 
+MAARS:
+  - EHR 分支，病人电子病历信息,表格类型实数，使用FFN层处理
+  - CIR 分支，心脏影像学报告,表格类型实数，FFN层处理
+  - LGE-CMR分支，三维MRI影像,使用3D ViT进行处理
+
+问题输出依然是一个分类问题，即输出一个患有SCDA的风险概率
+
