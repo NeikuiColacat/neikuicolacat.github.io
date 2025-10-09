@@ -59,3 +59,25 @@ MAARS:
 
 问题输出依然是一个分类问题，即输出一个患有SCDA的风险概率
 
+## Artificial intelligence-based myocardial infarction diagnosis: a comprehensive review of modern techniques
+
+1. ECG
+  - PTB dataset , 500
+  - MIT-BIH Arrhythmia , 48
+  - European ST-T & Long-Term ST , 87
+  - Fantasia , 40
+  - St. Petersburg , 75
+2. 核磁共振影像
+  - ACDC Dataset , 100 , cine-MRI , 心腔心肌分割，功能评估
+  - EMIDEC , 150 , MI区域分割
+  - Cardiac Perfusion Dataset , 35
+3. 超声心动图 Echo
+  - HMC-QU dataset , 二维灰度视频 , 左心室壁分割，MI检测
+4. 病理切片
+  - Histopathology Dataset ， 数百张切片 ， 做正常急性陈旧类型的MI分类
+5. 临床数据
+  - UMMC Clinical Dataset ， 140名AMI患者 ， 风险预测 临床辅助诊断
+6. 生化指标
+7. 非结构化电子病历数据
+  
+
