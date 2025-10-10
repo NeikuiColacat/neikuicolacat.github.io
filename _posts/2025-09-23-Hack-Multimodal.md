@@ -258,3 +258,11 @@ BBS-Net（轻量化，工业界常用，能体现应用价值）
 ### 目标检测任务
 
 再议
+
+### 尝试搭建D3Net模型并使用 ART 框架 进行攻击
+
+![D3net](/images/D3Net.jpg)
+
+- 最小化 L-rgb = BCE(S_rgb,GT)
+- 最小化 L-depth = BCE(S_depth,GT)
+- 最大化 L-rgbd = BCE(S_rgbd,GT)
