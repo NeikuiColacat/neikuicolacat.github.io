@@ -1,13 +1,4 @@
 📚 多模态研究阅读列表（2018–2025）
-起步阶段：RGB-D 与视频多模态感知（2018–2019）
-Revisiting Video Saliency: A Large-scale Benchmark and a New Model CVPR 2018 → 视频显著性检测（视觉+时间序列）
-
-Contrast Prior and Fluid Pyramid Integration for RGBD Salient Object Detection CVPR 2019 → RGB-D 显著性检测（图像+深度）
-
-Unsupervised Scale-consistent Depth and Ego-motion Learning from Monocular Video NeurIPS 2019 → 单目视频的深度+自运动联合学习（图像+几何+时序）
-
-扩展阶段：跨任务与医学影像（2020–2021）
-Dynamic Feature Integration for Simultaneous Detection of Salient Object, Edge and Skeleton TIP 2020 → 多任务/多模态特征融合
 
 Spatial Information Guided Convolution for Real-Time RGBD Semantic Segmentation TIP 2021 → RGB-D 语义分割
 
@@ -72,5 +63,3 @@ Sm3det: Multi-modal Remote Sensing Object Detection arXiv 2024 → 遥感多模�
 第四阶段（2024）：阅读 Cascade-CLIP、TeMO、StoryDiffusion，理解视觉-语言对齐和 3D/长序列生成。
 
 第五阶段（2025）：最后看 Video LLMs、OmniSegmentor、Docopilot、TAR3D，这是团队最新的多模态大模型成果。
-
-
