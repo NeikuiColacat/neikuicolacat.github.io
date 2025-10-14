@@ -1,65 +1,47 @@
-📚 多模态研究阅读列表（2018–2025）
+# 📚 精简阅读清单（仅限 Qibin Hou 的多模态工作）
 
-Spatial Information Guided Convolution for Real-Time RGBD Semantic Segmentation TIP 2021 → RGB-D 语义分割
+1. 视觉-语言对齐（基础机制，必读）
+Cascade-CLIP (ICML 2024) → 研究图像-文本对齐，适合理解 embedding 层的脆弱性。
 
-JCS: Joint Classification and Segmentation for COVID-19 Diagnosis TIP 2021 → 医学影像多模态（分类+分割）
+Unbiased Region-Language Alignment (ICCV 2025) → 针对开放词汇密集预测的 region-word 对齐偏差，适合研究区域级攻击。
 
-Temporal Modulation Network for Controllable Space-Time Video Super-Resolution CVPR 2021 → 视频超分辨率（视觉+时间序列）
+Re-Aligning Language to Visual Objects (ICLR 2025) → 引入 agentic workflow 的视觉-语言对齐，适合探索 LLM 驱动的多模态攻击。
 
-过渡阶段：跨模态知识迁移与生成（2022–2023）
-L2G: Local-to-Global Knowledge Transfer for Weakly Supervised Semantic Segmentation CVPR 2022 → 跨层次/跨模态知识迁移
+👉 价值：这三篇帮你掌握“跨模态对齐”的核心机制，是通用攻击的理论基石。
+2. RGB-D / 多视觉模态融合（模态不一致攻击）
+DFormer (ICLR 2024)
 
-Fmnet: Frequency-aware Modulation Network for SDR-to-HDR Translation ACM MM 2022 → 图像模态转换（SDR→HDR）
+DFormerV2 (CVPR 2025)
 
-Masked Autoencoders are Efficient Class Incremental Learners ICCV 2023 → 自监督预训练迁移到增量学习
+👉 价值：RGB + Depth 融合，适合研究 模态不一致攻击（只攻击深度或 RGB）。这类攻击思路可以迁移到医学影像、遥感等多模态场景。
+3. 应用场景（验证攻击的普适性）
+Sm3det (arXiv 2024) → 遥感多模态检测（RGB+SAR+高光谱）
 
-SLAN: Self-Locator Aided Network for Vision-language Understanding ICCV 2023 → 初步进入视觉-语言理解
+MedSeg-R (2025) → 医学影像多模态分割（CT/MRI+文本/多通道）
 
-Multi-Space Neural Radiance Fields CVPR 2023 → NeRF 表征（视觉+3D）
+Docopilot (CVPR 2025) → 文档级多模态理解（图像+文本+布局）
 
-Masked Diffusion Transformer is a Strong Image Synthesizer ICCV 2023 → 扩散模型生成（跨模态生成）
+👉 价值：这三篇覆盖 遥感 / 医学 / 文档 三个高风险应用场景，你的攻击方法如果能在这些任务上都有效，就能证明“跨任务通用性”。
+4. 视频多模态（前沿探索，可选）
+TempSamp-R1 (NeurIPS 2025) → 视频 LLM 时序采样
 
-前沿阶段：视觉-语言对齐与3D生成（2024）
-Cascade-CLIP: Cascaded Vision-Language Embeddings Alignment for Zero-Shot Semantic Segmentation ICML 2024 → 视觉-语言对齐
+LLaVA-Scissor (2025) → 视频 LLM token 压缩
 
-Dformer: Rethinking RGBD Representation Learning for Semantic Segmentation ICLR 2024 → RGB-D 表征学习
+👉 价值：如果你想把攻击扩展到视频 LLM，可以读这两篇；但如果时间有限，可以放在最后。
 
-TeMO: Text-driven 3D Stylization for Multi-Object Meshes CVPR 2024 → 文本驱动的 3D 风格化（文本+视觉+3D）
+---
 
-StoryDiffusion: Consistent Self-Attention for Long-Range Image and Video Generation NeurIPS 2024 → 长序列图像/视频生成
+✅ 最终精简路线（7–8 篇核心论文）
+Cascade-CLIP
 
-MaskDiffusion: Boosting Text-to-Image Consistency with Conditional Mask IJCV 2024 → 文本-图像一致性增强
+Unbiased Region-Language Alignment
 
-Sardet-100k: SAR Object Detection Benchmark NeurIPS 2024 → 遥感多模态检测（SAR+视觉）
+Re-Aligning Language to Visual Objects
 
-全面开花阶段：多模态大模型（2025）
-Unbiased Region-Language Alignment for Open-Vocabulary Dense Prediction ICCV 2025 → 视觉-语言对齐
+DFormer / DFormerV2
 
-Re-Aligning Language to Visual Objects with an Agentic Workflow ICLR 2025 → 智能体式视觉-语言对齐
+Sm3det
 
-TempSamp-R1: Effective Temporal Sampling for Video LLMs NeurIPS 2025 → 视频大模型（Video LLM）
+MedSeg-R
 
-LLaVA-Scissor / Llava-octopus arXiv 2025 → 视频理解中的多模态 LLM
-
-TAR3D: Creating High-Quality 3D Assets via Next-Part Prediction ICCV 2025 → 3D 多模态生成
-
-AR-1-to-3: Single Image to Consistent 3D Object Generation ICCV 2025 → 单图像到 3D 对象生成
-
-OmniSegmentor: A Flexible Multi-Modal Learning Framework for Semantic Segmentation NeurIPS 2025 → 通用多模态分割框架
-
-Docopilot: Document-Level Multimodal Understanding CVPR 2025 → 文档级多模态理解
-
-MedSeg-R / McaNet 2025 → 医学影像多模态分割
-
-Sm3det: Multi-modal Remote Sensing Object Detection arXiv 2024 → 遥感多模态检测
-
-🎯 阅读建议
-第一阶段（2018–2019）：先读 RGB-D 和视频显著性检测的工作，理解多模态感知的起点。
-
-第二阶段（2020–2021）：扩展到视频修复/超分辨率和医学影像，体会跨任务多模态。
-
-第三阶段（2022–2023）：重点看 L2G、SLAN、NeRF、Diffusion，这是进入生成式和视觉-语言的关键。
-
-第四阶段（2024）：阅读 Cascade-CLIP、TeMO、StoryDiffusion，理解视觉-语言对齐和 3D/长序列生成。
-
-第五阶段（2025）：最后看 Video LLMs、OmniSegmentor、Docopilot、TAR3D，这是团队最新的多模态大模型成果。
+Docopilot （可选：TempSamp-R1, LLaVA-Scissor
