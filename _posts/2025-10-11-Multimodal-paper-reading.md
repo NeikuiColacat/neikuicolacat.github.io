@@ -1,7 +1,10 @@
 # 📚 精简阅读清单（仅限 Qibin Hou 的多模态工作）
 
-1. 视觉-语言对齐（基础机制，必读）
-Cascade-CLIP (ICML 2024) → 研究图像-文本对齐，适合理解 embedding 层的脆弱性。
+## 1. 视觉-语言对齐（基础机制，必读）
+
+### Cascade-CLIP (ICML 2024) → 研究图像-文本对齐，适合理解 embedding 层的脆弱性
+
+
 
 Unbiased Region-Language Alignment (ICCV 2025) → 针对开放词汇密集预测的 region-word 对齐偏差，适合研究区域级攻击。
 
