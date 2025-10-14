@@ -4,7 +4,27 @@
 
 ### Cascade-CLIP (ICML 2024) → 研究图像-文本对齐，适合理解 embedding 层的脆弱性
 
+利用类似Unet的思路 ， 使用多个level的特征来做语义分割
 
+一层一层transformer block 先进入一个NGA，然后分别接入image-text decoder，然后再把多级特征加起来做一个softmax
+
+复习一下focal loss 和 dice loss
+
+dice loss ： 衡量两个集合的相似度，在分割任务里即预测掩码和真实掩码重叠程度
+
+$$
+\text{DiceLoss} = 1 - \frac{2 \sum_{i=1}^N p_i y_i + \epsilon}{\sum_{i=1}^N p_i + \sum_{i=1}^N y_i + \epsilon}
+$$
+
+focal loss ：用于正负样本不平衡的loss
+
+$$
+\text{FocalLoss}(p_t) = - \alpha_t (1 - p_t)^{\gamma} \log(p_t)
+$$
+
+使用vsual prompt tuning技术微调模型，在每个视觉block输入插入一些可更新参数的prompt tokens，用于微调CLIP
+
+将若干个transformer block看作一个特征阶段，同一个特征阶段内使用NGA进行特征融合 ， 实现多层特征加权融合
 
 Unbiased Region-Language Alignment (ICCV 2025) → 针对开放词汇密集预测的 region-word 对齐偏差，适合研究区域级攻击。
 
