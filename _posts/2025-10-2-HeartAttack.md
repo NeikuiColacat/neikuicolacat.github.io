@@ -278,24 +278,55 @@ Cine-MRI 数据集 , 100例
 
 ### CT
 
-无
+#### CardioScans Dataset
+
+CT + MRI（共 39,200 DICOM 文件）
+
+但是没有标签，适合无监督学习
 
 ### Echo
 
-EchoNet-Dynamic（大规模，1万+视频，LVEF预测，Stanford ✅ 主流）
+#### EchoNet-Dynamic（大规模，1万+视频，LVEF预测，Stanford ✅ 主流）
 
-CAMUS（500名患者，2D Echo，心腔分割 ✅ 可下载）
+[下载](https://echonet.github.io/dynamic/)
 
-HMC-QU dataset（二维灰度视频，左心室壁分割，MI检测）
+10,030 个视频（每个约 2 秒）
 
-EchoNext Dataset（124万对 ECG-Echo，PhysioNet ✅）
+配有左心室分割标签和射血分数（EF）功能参数，适用于心功能评估
+
+#### CAMUS（500名患者，2D Echo，心腔分割 ✅ 可下载）
+
+[下载](https://www.creatis.insa-lyon.fr/Challenge/camus/)
+LV、LA 分割掩码
+
+#### HMC-QU dataset（二维灰度视频，左心室壁分割，MI检测）
+
+[下载](https://www.kaggle.com/datasets/aysendegerli/hmcqu-dataset)
+
+病理标签：93 例 MI（急性 ST 段抬高型）+ 69 例非 MI
+
+#### EchoNext Dataset（124万对 ECG-Echo，PhysioNet ✅）
+
+[下载](https://physionet.org/content/echonext/1.1.0/)
+
+1,240,000+ 对 ECG-Echo 配对数据
+
+包含以下结构性心脏病类型：
+
+瓣膜性心脏病（如主动脉瓣狭窄、二尖瓣关闭不全）
+
+心室肥厚（LVH）
+
+心室扩大（LV dilation）
+
+射血分数异常（EF 降低）
+
+标签为二分类：是否存在结构性心脏病（SHD）
 
 ### CAG冠状动脉造影
 
-### 电子病历
+[下载](https://huggingface.co/datasets/MedHK23/CCA)
 
-Cleveland Heart Disease Dataset（UCI库，经典小规模表格数据 ✅ 可下载）
+200 例（20 训练 + 180 测试）
 
-### 可穿戴设备
-
-Apple Heart Study、UK Biobank（需申请访问，规模大）
+冠状动脉像素分割信息
