@@ -232,19 +232,49 @@ LVEF , RVEF , EDV , ESV , SV , CO , CI : MRI和Echo
 
 ### MRI
 
-ACDC Dataset（100例 cine-MRI，心腔/心肌分割，功能评估 ✅ 可下载）
+#### ACDC Dataset（100例 cine-MRI，心腔/心肌分割，功能评估 ✅ 可下载）
 
-EMIDEC（150例 LGE-MRI，MI区域分割 ✅ 可下载）
+Cine-MRI 数据集 , 100例
 
-MyoPS 2020（45例，多序列MRI：T2、bSSFP、LGE，瘢痕/水肿分割 ✅ 可下载）
+[下载](https://www.creatis.insa-lyon.fr/Challenge/acdc/databases.html)
 
-Cardiac Perfusion Dataset（35例，MRP灌注数据，规模较小）
+标签提供心脏解剖结构分割信息
 
-M&M (Multi-Centre, Multi-Vendor)（150训练+225测试，心肌分割，含MINF ✅ 可下载）
+#### EMIDEC（150例 LGE-MRI，MI区域分割 ✅ 可下载）
 
-Cardiac Atlas Project (CAP)（大规模MRI，功能参数+临床信息 ✅ 可下载）
+[下载，需要申请](https://emidec.com/)
 
-SCMR Consensus Dataset 
+像素级标签包含如下内容
+
+1. 左心室心肌区域
+2. 心肌梗死区域
+3. 无复流区域(灌注缺失区域)
+
+#### MyoPS 2020（45例，多序列MRI：T2、cine-MRI、LGE，瘢痕/水肿分割 ✅ 可下载）
+
+1. 左心室血池 LV
+2. 右心室血池 RV
+3. 正常心肌
+4. 心肌瘢痕
+5. 心肌水肿区域
+
+#### M&M (Multi-Centre, Multi-Vendor)（150训练+225测试，心肌分割，含MINF ✅ 可下载）
+
+[下载链接](https://www.ub.edu/mnms/)
+
+分割标签：
+
+1. LV（左心室腔体）
+
+2. RV（右心室腔体）
+
+3. Myo（左心室心肌壁）
+
+病理分类标签：
+
+1. NOR (正常)
+
+2. MINF(心肌梗死)
 
 ### CT
 
