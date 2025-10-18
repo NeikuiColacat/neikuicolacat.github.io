@@ -133,3 +133,105 @@ RV：右心室异常（Right Ventricular Abnormality）
 9. EchoNet-Dynamic
 10. Cleveland
 11. CAMUS
+
+---
+
+## 具体医学任务
+
+### 诊断类型任务
+
+1. MI检测(二分类任务)
+
+主要依靠12导联ECG
+
+LGE MRI
+
+电子病历
+2. MI多分类任务
+
+STEMI(冠状动脉完全阻塞)
+
+NSTEMI(不完全阻塞)
+
+MINOCA(心肌梗死，但不完全阻塞)
+
+ECG
+
+CAG
+
+LGE MRI、T2 MRI
+
+Echo
+
+## 病灶分析类任务
+
+1. 病变部位识别分割分类
+
+瘢痕：心肌完全坏死区域
+
+灰区：心肌受损但是不完全坏死区域
+
+远端区：正常心脏组织
+
+壁段：前壁、下壁、侧壁、间隔部
+
+冠脉：LAD、LCX、RCA
+
+LGE MRI , Echo , CCTA , ECG
+2. 灌注缺损标识任务(识别心肌区域是否存在血流灌注不足，提示供血障碍或梗死区域)
+
+MRP(MRI灌注成像) 与 LGE MRI 结合
+3. 风险评估类任务
+
+短期住院期间再次梗死风险
+
+出院后30天内再次心梗风险
+
+1年/五年 死亡率
+
+ECG , MRI , CTTA , Echo , 电子病历表格数据 , 可穿戴设备数据
+4. 回归类型任务
+
+LVEF , RVEF , EDV , ESV , SV , CO , CI : MRI和Echo
+
+---
+
+## 数据集
+
+1. 心电生理（ECG）
+PTB-XL（大规模，2.1万名患者，12导联ECG，PhysioNet可下载 ✅ 主流）
+
+PTB Diagnostic ECG Database（500例，经典AMI检测数据集 ✅ 可下载）
+
+MIT-BIH Arrhythmia（48例，心律失常检测，PhysioNet ✅ 主流）
+
+EchoNext Dataset（124万对 ECG-Echo 数据，PhysioNet ✅ 大规模）
+2. MRI
+
+ACDC Dataset（100例 cine-MRI，心腔/心肌分割，功能评估 ✅ 可下载）
+
+EMIDEC（150例 LGE-MRI，MI区域分割 ✅ 可下载）
+
+MyoPS 2020（45例，多序列MRI：T2、bSSFP、LGE，瘢痕/水肿分割 ✅ 可下载）
+
+Cardiac Perfusion Dataset（35例，MRP灌注数据，规模较小）
+
+M&M (Multi-Centre, Multi-Vendor)（150训练+225测试，心肌分割，含MINF ✅ 可下载）
+
+Cardiac Atlas Project (CAP)（大规模MRI，功能参数+临床信息 ✅ 可下载）
+3. CT
+无
+4. Echo
+
+EchoNet-Dynamic（大规模，1万+视频，LVEF预测，Stanford ✅ 主流）
+
+CAMUS（500名患者，2D Echo，心腔分割 ✅ 可下载）
+
+HMC-QU dataset（二维灰度视频，左心室壁分割，MI检测）
+
+EchoNext Dataset（124万对 ECG-Echo，PhysioNet ✅）
+5. CAG冠状动脉造影
+6. 电子病历
+Cleveland Heart Disease Dataset（UCI库，经典小规模表格数据 ✅ 可下载）
+7. 可穿戴设备
+Apple Heart Study、UK Biobank（需申请访问，规模大）
