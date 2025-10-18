@@ -198,15 +198,39 @@ LVEF , RVEF , EDV , ESV , SV , CO , CI : MRI和Echo
 
 ## 数据集
 
-1. 心电生理（ECG）
-PTB-XL（大规模，2.1万名患者，12导联ECG，PhysioNet可下载 ✅ 主流）
+### 心电生理（ECG）
 
-PTB Diagnostic ECG Database（500例，经典AMI检测数据集 ✅ 可下载）
+#### PTB-XL（大规模，2.1万名患者，12导联ECG，PhysioNet可下载 ✅ 主流）
 
-MIT-BIH Arrhythmia（48例，心律失常检测，PhysioNet ✅ 主流）
+[2020年发布，下载链接](https://physionet.org/content/ptb-xl/1.0.1/)
 
-EchoNext Dataset（124万对 ECG-Echo 数据，PhysioNet ✅ 大规模）
-2. MRI
+21,837条 ECG 记录
+
+标准12导联
+
+心梗类型标签，心梗病变部位标签，电子病历信息
+
+### PTB Diagnostic ECG Database（500例，经典AMI检测数据集 ✅ 可下载）
+
+[2004年发布，下载链接](https://physionet.org/content/ptbdb/1.0.0/)
+
+549条记录
+
+15导联
+
+记录了心梗病变部位信息
+
+### Georgia 12-lead ECG Challenge Database
+
+[下载链接](https://www.kaggle.com/datasets/physionet/georgia-12lead-ecg-challenge-database)
+
+10,344 条 ECG
+
+12 导联
+
+心肌梗死（MI）：部分记录含 MI 标签（如 STEMI、NSTEMI、前壁/下壁梗死）
+
+### MRI
 
 ACDC Dataset（100例 cine-MRI，心腔/心肌分割，功能评估 ✅ 可下载）
 
@@ -219,9 +243,14 @@ Cardiac Perfusion Dataset（35例，MRP灌注数据，规模较小）
 M&M (Multi-Centre, Multi-Vendor)（150训练+225测试，心肌分割，含MINF ✅ 可下载）
 
 Cardiac Atlas Project (CAP)（大规模MRI，功能参数+临床信息 ✅ 可下载）
-3. CT
+
+SCMR Consensus Dataset 
+
+### CT
+
 无
-4. Echo
+
+### Echo
 
 EchoNet-Dynamic（大规模，1万+视频，LVEF预测，Stanford ✅ 主流）
 
@@ -230,8 +259,13 @@ CAMUS（500名患者，2D Echo，心腔分割 ✅ 可下载）
 HMC-QU dataset（二维灰度视频，左心室壁分割，MI检测）
 
 EchoNext Dataset（124万对 ECG-Echo，PhysioNet ✅）
-5. CAG冠状动脉造影
-6. 电子病历
+
+### CAG冠状动脉造影
+
+### 电子病历
+
 Cleveland Heart Disease Dataset（UCI库，经典小规模表格数据 ✅ 可下载）
-7. 可穿戴设备
+
+### 可穿戴设备
+
 Apple Heart Study、UK Biobank（需申请访问，规模大）
