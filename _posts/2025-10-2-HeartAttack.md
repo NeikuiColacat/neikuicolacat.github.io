@@ -4,11 +4,14 @@
 
 CMR(心脏磁共振影像) : 单通道灰度图像
 
-1. cine MRI: 一段20到30帧的包含一个心动周期的视频
-  1. SAX cine（短轴序列，9 个切片 × 25 帧）
-  2. 4CH cine（长轴序列，25 帧）
-2. LGE　MRI: 一组8-15张的灰度图像，合起来可以三维重建一个心脏
-  1. SAX LGE（短轴，8-15张图像） 
+### 1. cine MRI: 一段20到30帧的包含一个心动周期的视频
+
+SAX cine（短轴序列，9 个切片 × 25 帧）
+4CH cine（长轴序列，25 帧）
+
+### 2. LGE　MRI: 一组8-15张的灰度图像，合起来可以三维重建一个心脏
+
+SAX LGE（短轴，8-15张图像） 
 
 二分类问题：判断心脏是否异常
 
@@ -22,12 +25,14 @@ CMR(心脏磁共振影像) : 单通道灰度图像
 
 124万对ECG-Echo数据,包括如下信息
 
-1. 12路ECG电信号图
-2. ECG测量设备生成的一些特征：心房率（atrial rate）
- - 心室率（ventricular rate）
- - PR 间期
- - QRS 宽度
- - QTc（校正 QT 间期）
+### 1. 12路ECG电信号图
+
+### 2. ECG测量设备生成的一些特征：心房率（atrial rate）
+
+  心室率（ventricular rate）
+  PR 间期
+  QRS 宽度
+  QTc（校正 QT 间期）
 3. 年龄性别
 
 多分类问题:判断获得各种疾病的概率
@@ -53,41 +58,52 @@ ECG波形数据，12路波形
 ## Multimodal AI to forecast arrhythmic death in hypertrophic cardiomyopathy
 
 MAARS:
-  - EHR 分支，病人电子病历信息,表格类型实数，使用FFN层处理
-  - CIR 分支，心脏影像学报告,表格类型实数，FFN层处理
-  - LGE-CMR分支，三维MRI影像,使用3D ViT进行处理
+
+- EHR 分支，病人电子病历信息,表格类型实数，使用FFN层处理
+- CIR 分支，心脏影像学报告,表格类型实数，FFN层处理
+- LGE-CMR分支，三维MRI影像,使用3D ViT进行处理
 
 问题输出依然是一个分类问题，即输出一个患有SCDA的风险概率
 
 ## Artificial intelligence-based myocardial infarction diagnosis: a comprehensive review of modern techniques
 
-1. ECG
+### 1. ECG
+
 PTB dataset , 500
 MIT-BIH Arrhythmia , 48
 European ST-T & Long-Term ST , 87
 Fantasia , 40
 St. Petersburg , 75
-2. 核磁共振影像
+
+### 2. 核磁共振影像
+
 ACDC Dataset , 100 , cine-MRI , 心腔心肌分割，功能评估
 EMIDEC , 150 , MI区域分割
 Cardiac Perfusion Dataset , 35
-3. 超声心动图 Echo
+
+### 3. 超声心动图 Echo
+
 HMC-QU dataset , 二维灰度视频 , 左心室壁分割，MI检测
-4. 病理切片
+
+### 4. 病理切片
+
 Histopathology Dataset ， 数百张切片 ， 做正常急性陈旧类型的MI分类
-5. 临床数据
+
+### 5. 临床数据
+
 UMMC Clinical Dataset ， 140名AMI患者 ， 风险预测 临床辅助诊断
 
 ---
 
 相关数据集
 
-1. MyoPS 2020 ， 图像分割， 分类区分正常梗死，区分急性慢性，预后检测
+### 1. MyoPS 2020 ， 图像分割， 分类区分正常梗死，区分急性慢性，预后检测
 
 45 位患者的多序列心脏 MRI（T2、bSSFP、LGE）影像
 
 人工标注的 心肌瘢痕、水肿、正常心肌、左右心室血池 图像分割任务
-2. EMIDEC , 图像分割， 分类区分正常梗死
+
+### 2. EMIDEC , 图像分割， 分类区分正常梗死
 
 150 例延迟增强心脏 MRI（DE-MRI）病例，其中 100 例为心肌梗死患者，50 例为正常对照
 
@@ -100,8 +116,10 @@ UMMC Clinical Dataset ， 140名AMI患者 ， 风险预测 临床辅助诊断
 心肌梗死 (Myocardial infarction)
 
 无复流区 (No-reflow, microvascular obstruction)
-3. SCMR Consensus，心肌轮廓分割，
-4. ACDC (Automated Cardiac Diagnosis Challenge)，图像分割
+
+### 3. SCMR Consensus，心肌轮廓分割，
+
+### 4. ACDC (Automated Cardiac Diagnosis Challenge)，图像分割
 
 100训练集 带有标注 ， 50测试集无标注 ， 带有心梗疾病5个类型，心脏各类性能指标参数
 
@@ -114,7 +132,8 @@ UMMC Clinical Dataset ， 140名AMI患者 ， 风险预测 临床辅助诊断
 肥厚型心肌病 (Hypertrophic cardiomyopathy)
 
 右心室异常 (Right ventricular abnormality)
-5. M&M(Multi-Centre, Multi-Vendor) ， 心肌分割标注
+
+### 5. M&M(Multi-Centre, Multi-Vendor) ， 心肌分割标注
 
 150公开 训练集，225测试集(无标签信息)
 
@@ -127,27 +146,32 @@ HCM：肥厚型心肌病（Hypertrophic Cardiomyopathy）
 MINF：心肌梗死（Myocardial Infarction）
 
 RV：右心室异常（Right Ventricular Abnormality）
-6. CMRxRecon 2024 , MRI扫描仪的原始k空间数据,330个样本，用于AI快速心脏成像
-7. Cardiac Atlas Project (CAP) , MRI图像数据 ， 解剖结构分割，功能参数，病理分类，临床患者信息
-8. PTB-XL
-9. EchoNet-Dynamic
-10. Cleveland
-11. CAMUS
+
+### 6. CMRxRecon 2024 , MRI扫描仪的原始k空间数据,330个样本，用于AI快速心脏成像
+
+### 7. Cardiac Atlas Project (CAP) , MRI图像数据 ， 解剖结构分割，功能参数，病理分类，临床患者信息
+
+### 8. PTB-XL
+
+### 9. EchoNet-Dynamic
+
+### 10. Cleveland
+
+### 11. CAMUS
 
 ---
 
-## 具体医学任务
-
 ### 诊断类型任务
 
-1. MI检测(二分类任务)
+#### 1. MI检测(二分类任务)
 
 主要依靠12导联ECG
 
 LGE MRI
 
 电子病历
-2. MI多分类任务
+
+#### 2. MI多分类任务
 
 STEMI(冠状动脉完全阻塞)
 
@@ -163,9 +187,9 @@ LGE MRI、T2 MRI
 
 Echo
 
-## 病灶分析类任务
+### 病灶分析类任务
 
-1. 病变部位识别分割分类
+#### 1. 病变部位识别分割分类
 
 瘢痕：心肌完全坏死区域
 
@@ -178,10 +202,12 @@ Echo
 冠脉：LAD、LCX、RCA
 
 LGE MRI , Echo , CCTA , ECG
-2. 灌注缺损标识任务(识别心肌区域是否存在血流灌注不足，提示供血障碍或梗死区域)
+
+#### 2. 灌注缺损标识任务(识别心肌区域是否存在血流灌注不足，提示供血障碍或梗死区域)
 
 MRP(MRI灌注成像) 与 LGE MRI 结合
-3. 风险评估类任务
+
+#### 3. 风险评估类任务
 
 短期住院期间再次梗死风险
 
@@ -190,7 +216,8 @@ MRP(MRI灌注成像) 与 LGE MRI 结合
 1年/五年 死亡率
 
 ECG , MRI , CTTA , Echo , 电子病历表格数据 , 可穿戴设备数据
-4. 回归类型任务
+
+#### 4. 回归类型任务
 
 LVEF , RVEF , EDV , ESV , SV , CO , CI : MRI和Echo
 
@@ -280,9 +307,9 @@ Cine-MRI 数据集 , 100例
 
 #### CardioScans Dataset
 
-CT + MRI（共 39,200 DICOM 文件）
+[下载](https://gts.ai/dataset-download/cardioscans-heart-ct-mri-data/)
 
-但是没有标签，适合无监督学习
+CT + MRI（共 39,200 DICOM 文件）
 
 ### Echo
 
@@ -330,3 +357,23 @@ LV、LA 分割掩码
 200 例（20 训练 + 180 测试）
 
 冠状动脉像素分割信息
+
+---
+
+### 多模态割裂问题
+
+尝试将 MRI ECHO CT 等模态数据映射到同一个 latent sapce下
+
+同时该latent space能够通过模型转换回 CT MRI ECHO 等 （生成模型）。
+
+---
+
+把正常和不正常数据映射到同一个语义空间 ，在该空间下查看他们的L2 norm之类的量化标准判别 是否该数据正常
+
+---
+
+每个模态单独去搞一个模型 ， 但是他们是对齐在同一个语义空间下的
+
+---
+
+用类似diffusion 方式生成 ECG ， 去做一个异常检测
