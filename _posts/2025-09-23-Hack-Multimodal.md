@@ -135,7 +135,6 @@ Loss即一个设计让模型预测失败的交叉熵
 
 假设有k个类别，那么就有k-1个超平面，使用一阶泰勒展开近似，选择距离最近的那个超平面走去，依次迭代生成对抗样本
 
-
 ### C&W 攻击
 
 依然是类似FGSM攻击，基于梯度
@@ -266,3 +265,56 @@ BBS-Net（轻量化，工业界常用，能体现应用价值）
 - 最小化 L-rgb = BCE(S_rgb,GT)
 - 最小化 L-depth = BCE(S_depth,GT)
 - 最大化 L-rgbd = BCE(S_rgbd,GT)
+
+## One Perturbation is Enough: On Generating Universal Adversarial  Perturbations against Vision-Language Pre-training Models
+
+![picture 0](../images/f812f51aec12e2f97430f3e64dae813347aa0c91e92a4c4996dd4aabeb006a99.png)  
+
+搞一个生成器模型G ，去生成通用的一个噪声扰动 ， 能加到各种样本里面
+
+假如需要生成图像的扰动 ，G是一个transformer ， kv是image信息，q就是与其配对的文本信息，通过Q做cross-att,这样生成出来的噪声做到所谓的跨模态攻击
+
+![picture 1](../images/4f2cef75ef3c6f58e7b92ba1e10e21e1dc40f2cc51bb8728e4b57da8b676fc37.png)  
+
+![picture 2](../images/344f6d5e056423d458555ca40e8470ec4100961aad9656dc3fea4a0849436250.png)  
+
+文本模态对抗样本相似 ，Token 替换策略：
+
+1. 遍历句子中每个词
+2. 计算“去掉该词”后句子 embedding 与原句 embedding 的差异。
+3. 选择影响最大的词作为替换目标。(仅替换一个token)
+4. 用生成器输出的 adversarial token 替换该词。
+
+## VLATTACK: Multimodal Adversarial Attacks on Vision-Language Tasks via Pre-trained Models
+
+同样是基于把两个模态的余弦相似度推远来做
+
+## 尝试使用PGD攻击Dformer
+
+目前的想法是仅使用RGB攻击的方式达到我的目的 ， 将RGB模态与其他模态做attention的时候，把余弦相似度推远，同时再加入别的损失函数。
+
+### 补一补 BERT attack的知识
+
+1. 选通过mask掉token , 出最能影响输出结果logits的topk个token
+2. mask掉的token用BERT求出替换token的candidate集合 ， 如果mask掉的token是被BPE分词切碎的，需要做进一步子词处理
+3. 句子相似约束，保证替换token和原token余弦相似度匹配
+4. 做贪心重复进行，直到达到hack目的停止
+
+### 补一补BSA算法
+
+BSA（Block-wise Similarity Attack）是 VLATTACK 提出的图像攻击方法。
+
+它的核心思想是：不依赖下游模型的梯度，而是直接在预训练视觉-语言模型的中间层特征空间中，最大化原图与扰动图的差异，从而破坏图文通用表示，实现可迁移的黑盒攻击。
+
+---
+
+VLATTACK的思想
+
+交替更新图像和文本扰动，让两者相互配合
+
+流程：
+
+1. 从文本攻击阶段得到一批候选文本扰动 , 按语义相似度排序。
+2. 将剩余攻击步数平均分配给这些候选。
+3. 对每个候选文本 ，在其指导下使用BSA算法继续优化图像扰动
+4. 更新后检查 ， 成功则停止，否则继续下一个候选。

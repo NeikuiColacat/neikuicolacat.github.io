@@ -1,4 +1,6 @@
-## Cascade-CLIP (ICML 2024) 
+# Multimodal Reading
+
+## Cascade-CLIP (ICML 2024)
 
 利用类似Unet的思路 ， 使用多个level的特征来做语义分割
 
@@ -22,7 +24,7 @@ $$
 
 将若干个transformer block看作一个特征阶段，同一个特征阶段内使用NGA进行特征融合 ， 实现多层特征加权融合
 
-## Unbiased Region-Language Alignment (ICCV 2025) 
+## Unbiased Region-Language Alignment (ICCV 2025)
 
 VLM在密集预测任务上，容易把背景当成前景
 
@@ -40,7 +42,7 @@ PLM是一个预训练的强大VLM，对图像局部区域打伪标签
 
 最后的loss ： ITC loss + 背景抑制项目 + 自蒸馏一致性损失 KL散度
 
-## Re-Aligning Language to Visual Objects (ICLR 2025) 
+## Re-Aligning Language to Visual Objects (ICLR 2025)
 
 存在问题 ： 语言驱动目标检测（Language-based Object Detection, LOD）。它指出现有方法依赖 VLM 自动生成对象描述，但这些描述常常出现“幻觉”（错误类别、颜色、形状），导致语言与视觉对象对齐不准。
 
