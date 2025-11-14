@@ -266,7 +266,9 @@ BBS-Net（轻量化，工业界常用，能体现应用价值）
 - 最小化 L-depth = BCE(S_depth,GT)
 - 最大化 L-rgbd = BCE(S_rgbd,GT)
 
-## One Perturbation is Enough: On Generating Universal Adversarial  Perturbations against Vision-Language Pre-training Models
+---
+
+## One Perturbation is Enough: On Generating Universal Adversarial  Perturbations against Vision-Language Pre-training Models(CVPR)
 
 ![picture 0](../images/f812f51aec12e2f97430f3e64dae813347aa0c91e92a4c4996dd4aabeb006a99.png)  
 
@@ -285,13 +287,9 @@ BBS-Net（轻量化，工业界常用，能体现应用价值）
 3. 选择影响最大的词作为替换目标。(仅替换一个token)
 4. 用生成器输出的 adversarial token 替换该词。
 
-## VLATTACK: Multimodal Adversarial Attacks on Vision-Language Tasks via Pre-trained Models
+## VLATTACK: Multimodal Adversarial Attacks on Vision-Language Tasks via Pre-trained Models(NIPS)
 
 同样是基于把两个模态的余弦相似度推远来做
-
-## 尝试使用PGD攻击Dformer
-
-目前的想法是仅使用RGB攻击的方式达到我的目的 ， 将RGB模态与其他模态做attention的时候，把余弦相似度推远，同时再加入别的损失函数。
 
 ### 补一补 BERT attack的知识
 
@@ -306,6 +304,8 @@ BSA（Block-wise Similarity Attack）是 VLATTACK 提出的图像攻击方法。
 
 它的核心思想是：不依赖下游模型的梯度，而是直接在预训练视觉-语言模型的中间层特征空间中，最大化原图与扰动图的差异，从而破坏图文通用表示，实现可迁移的黑盒攻击。
 
+![picture 3](/images/c8042f63bb0e4bfbf54359f3e7c9667ba7d48758ecedae983b5dee2486f5aa04.png)  
+
 ---
 
 VLATTACK的思想
@@ -318,3 +318,15 @@ VLATTACK的思想
 2. 将剩余攻击步数平均分配给这些候选。
 3. 对每个候选文本 ，在其指导下使用BSA算法继续优化图像扰动
 4. 更新后检查 ， 成功则停止，否则继续下一个候选。
+
+## Transferable Multimodal Attack on Vision-Language Pre-training Models(2024 IEEE Symposium on Security and Privacy)
+
+![picture 6](/images/ef7144b52d2e2045a959364fd7ed3d9cb3f7c50af8a537f01ca249c09b39b153.png)  
+
+## 尝试使用PGD攻击Dformer
+
+目前的想法是仅使用RGB攻击的方式达到我的目的 ， 将RGB模态与其他模态做attention的时候，把余弦相似度推远，同时再加入别的损失函数。
+
+![picture 4](/images/7e150fca4b0453e5f9cb491d04f7f6f2be8e31806c3cbc35505713d564774260.png)  
+
+![picture 5](/images/7614ca3a59b0bf9a761c9f8ed14cc606522de629b7c66931a0cf5957a00807d3.png)  
