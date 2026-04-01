@@ -1,19 +1,11 @@
-<head>
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: {
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-            inlineMath: [['$','$']]
-            }
-        });
-    </script>
-</head>
-
 ---
+layout: post
+title: Namomo Camp
+date: 2024-08-06
+description: 2024 Namomo summer camp notes covering data structures, game theory, graph theory, math, and DP
+tags: [cs, math]
+giscus_comments: false
 ---
-
-# 2024 Namomo summer camp 集训
 
 ## Day1 数据结构 Heltion 主讲
 
@@ -110,12 +102,12 @@
 - dls评价线段树为金牌题科技 ， 因为金牌题都不考线段树
 - 不需要会什么算法就银牌题了 ？ 此点有待考察
 
-![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/5684F80E053342F7DB88195D74DCC0B7.jpg?raw=true)
+![exam](/assets/img/5684F80E053342F7DB88195D74DCC0B7.jpg)
 
-![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/IMG_20240726_094309.jpg?raw=true)
+![exam](/assets/img/IMG_20240726_094309.jpg)
 
 ---
 
 <!-- 哦还和航哥去杭州看童锦程网红酒吧，但是舍不得几千块钱的卡座就没进去看了 ， 只能在门口驻足观望了 ，穷鬼感觉过不起纸醉金迷的生活
 
-![exam](https://github.com/NeikuiColacat/neikuicolacat.github.io/blob/main/images/IMG_20240802_224609.jpg?raw=true) -->
+![exam](/assets/img/IMG_20240802_224609.jpg) -->

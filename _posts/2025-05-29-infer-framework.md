@@ -1,4 +1,11 @@
-# 在写llm推理框架的时候遇到的一些有意思的thinking
+---
+layout: post
+title: LLM推理框架笔记
+date: 2025-05-29
+description: Notes on building LLM inference framework including CUDA kernel design for sgemv, mha, argmax, and more
+tags: [ml, cs]
+giscus_comments: false
+---
 
 ## 关于sgemv算子
 
@@ -158,4 +165,3 @@ cublas 做 gemm 为 列主序 ， 宿主机存矩阵为行主序
 当你启动一个 CUDA kernel 时，线程块会被划分成多个 wave（波次），每个 wave 包含若干个可以并发执行的线程块。前面的 wave 通常能充分利用所有 SM（Streaming Multiprocessor），但最后一个 wave 可能只包含少量线程块，导致 GPU 资源闲置。
 
 我们应尽量避免这种情况，将 grid_size 设置为精确的一个 wave 可能也无法避免 tail effect，因为 GPU 可能不是被当前 stream 独占的，常见的如 NCCL 执行时会占用一些 SM
-

@@ -1,7 +1,11 @@
 ---
+layout: post
+title: My summer plan
+date: 2024-07-05
+description: Summer plan including gym schedule and competitive programming goals
+tags: [notes]
+giscus_comments: false
 ---
-
-# My summer plan
 
 ## Gym plan
 

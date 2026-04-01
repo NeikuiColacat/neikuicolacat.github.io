@@ -1,4 +1,11 @@
-# 多模态模型Hack研究LOG
+---
+layout: post
+title: 多模态模型Hack研究
+date: 2025-09-23
+description: Research log on adversarial attacks against multimodal models including CLIP, ALBEF, BLIP, and RGB-D fusion models
+tags: [ml]
+giscus_comments: false
+---
 
 ## 文本 + 图像 类多模态模型
 
@@ -260,7 +267,7 @@ BBS-Net（轻量化，工业界常用，能体现应用价值）
 
 ### 尝试搭建D3Net模型并使用 ART 框架 进行攻击
 
-![D3net](/images/D3Net.jpg)
+![D3net](/assets/img/D3Net.jpg)
 
 - 最小化 L-rgb = BCE(S_rgb,GT)
 - 最小化 L-depth = BCE(S_depth,GT)
@@ -270,20 +277,20 @@ BBS-Net（轻量化，工业界常用，能体现应用价值）
 
 ## One Perturbation is Enough: On Generating Universal Adversarial  Perturbations against Vision-Language Pre-training Models(CVPR)
 
-![picture 0](../images/f812f51aec12e2f97430f3e64dae813347aa0c91e92a4c4996dd4aabeb006a99.png)  
+![picture 0](/assets/img/f812f51aec12e2f97430f3e64dae813347aa0c91e92a4c4996dd4aabeb006a99.png)  
 
 搞一个生成器模型G ，去生成通用的一个噪声扰动 ， 能加到各种样本里面
 
 假如需要生成图像的扰动 ，G是一个transformer ， kv是image信息，q就是与其配对的文本信息，通过Q做cross-att,这样生成出来的噪声做到所谓的跨模态攻击
 
-![picture 1](../images/4f2cef75ef3c6f58e7b92ba1e10e21e1dc40f2cc51bb8728e4b57da8b676fc37.png)  
+![picture 1](/assets/img/4f2cef75ef3c6f58e7b92ba1e10e21e1dc40f2cc51bb8728e4b57da8b676fc37.png)  
 
-![picture 2](../images/344f6d5e056423d458555ca40e8470ec4100961aad9656dc3fea4a0849436250.png)  
+![picture 2](/assets/img/344f6d5e056423d458555ca40e8470ec4100961aad9656dc3fea4a0849436250.png)  
 
 文本模态对抗样本相似 ，Token 替换策略：
 
 1. 遍历句子中每个词
-2. 计算“去掉该词”后句子 embedding 与原句 embedding 的差异。
+2. 计算"去掉该词"后句子 embedding 与原句 embedding 的差异。
 3. 选择影响最大的词作为替换目标。(仅替换一个token)
 4. 用生成器输出的 adversarial token 替换该词。
 
@@ -304,7 +311,7 @@ BSA（Block-wise Similarity Attack）是 VLATTACK 提出的图像攻击方法。
 
 它的核心思想是：不依赖下游模型的梯度，而是直接在预训练视觉-语言模型的中间层特征空间中，最大化原图与扰动图的差异，从而破坏图文通用表示，实现可迁移的黑盒攻击。
 
-![picture 3](/images/c8042f63bb0e4bfbf54359f3e7c9667ba7d48758ecedae983b5dee2486f5aa04.png)  
+![picture 3](/assets/img/c8042f63bb0e4bfbf54359f3e7c9667ba7d48758ecedae983b5dee2486f5aa04.png)  
 
 ---
 
@@ -321,15 +328,15 @@ VLATTACK的思想
 
 ## Transferable Multimodal Attack on Vision-Language Pre-training Models(2024 IEEE Symposium on Security and Privacy)
 
-![picture 6](/images/ef7144b52d2e2045a959364fd7ed3d9cb3f7c50af8a537f01ca249c09b39b153.png)  
+![picture 6](/assets/img/ef7144b52d2e2045a959364fd7ed3d9cb3f7c50af8a537f01ca249c09b39b153.png)  
 
 ## 尝试使用PGD攻击Dformer
 
 目前的想法是仅使用RGB攻击的方式达到我的目的 ， 将RGB模态与其他模态做attention的时候，把余弦相似度推远，同时再加入别的损失函数。
 
-![picture 4](/images/7e150fca4b0453e5f9cb491d04f7f6f2be8e31806c3cbc35505713d564774260.png)  
+![picture 4](/assets/img/7e150fca4b0453e5f9cb491d04f7f6f2be8e31806c3cbc35505713d564774260.png)  
 
-![picture 5](/images/7614ca3a59b0bf9a761c9f8ed14cc606522de629b7c66931a0cf5957a00807d3.png)  
+![picture 5](/assets/img/7614ca3a59b0bf9a761c9f8ed14cc606522de629b7c66931a0cf5957a00807d3.png)  
 
 ###
 

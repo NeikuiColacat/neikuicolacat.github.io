@@ -1,4 +1,11 @@
-# 科研好物推荐
+---
+layout: post
+title: 科研好物推荐
+date: 2025-11-05
+description: Useful tools for research including Semantic Scholar and DeepWiki
+tags: [tools]
+giscus_comments: false
+---
 
 ## Semantic Scholar
 

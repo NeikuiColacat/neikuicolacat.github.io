@@ -1,4 +1,11 @@
-# Multimodal Reading
+---
+layout: post
+title: Multimodal Reading
+date: 2025-10-11
+description: Paper reading notes on multimodal models including Cascade-CLIP, DenseVLM, LOD, and DFormer
+tags: [ml]
+giscus_comments: false
+---
 
 ## Cascade-CLIP (ICML 2024)
 
@@ -44,7 +51,7 @@ PLM是一个预训练的强大VLM，对图像局部区域打伪标签
 
 ## Re-Aligning Language to Visual Objects (ICLR 2025)
 
-存在问题 ： 语言驱动目标检测（Language-based Object Detection, LOD）。它指出现有方法依赖 VLM 自动生成对象描述，但这些描述常常出现“幻觉”（错误类别、颜色、形状），导致语言与视觉对象对齐不准。
+存在问题 ： 语言驱动目标检测（Language-based Object Detection, LOD）。它指出现有方法依赖 VLM 自动生成对象描述，但这些描述常常出现"幻觉"（错误类别、颜色、形状），导致语言与视觉对象对齐不准。
 
 解决方案 ：
 
@@ -62,7 +69,7 @@ LOD模型设计架构 ：
 
 ## DFormer (ICLR 2024)
 
-![picture 0](/images/25559cd71df42575c4b8d54688d2a1bf64c877ff789af637c1f37b788f059eeb.png)  
+![picture 0](/assets/img/25559cd71df42575c4b8d54688d2a1bf64c877ff789af637c1f37b788f059eeb.png)  
 
 1. RGB-D 预训练 , 在 ImageNet-1K 上生成 RGB-Depth 对（利用深度估计器 Adabins）。backbone 从一开始就学会 RGB 与深度的联合表征。
 
@@ -74,17 +81,17 @@ GAA (Global Awareness Attention)：融合 RGB 与深度的全局关系，增强 
 
 LEA (Local Enhancement Attention)：用大卷积核在深度特征上提取局部几何细节，再调制 RGB 特征。
 
-![picture 1](/images/7f09604b8229586a952dd0b904af7b3e8212491a4408e4bb2e184ca711742e80.png)  
+![picture 1](/assets/img/7f09604b8229586a952dd0b904af7b3e8212491a4408e4bb2e184ca711742e80.png)  
 
 ---
 
-跨模态一致性： “在多模态模型里，单模态扰动往往会被另一模态纠偏。如果我只在 RGB 上做攻击，如何设计损失函数才能最大化破坏跨模态一致性？”
+跨模态一致性： "在多模态模型里，单模态扰动往往会被另一模态纠偏。如果我只在 RGB 上做攻击，如何设计损失函数才能最大化破坏跨模态一致性？"
 
-通用攻击： “是否存在一种只基于 RGB 的扰动，但能在不同多模态任务上都迁移有效的攻击方式？”
+通用攻击： "是否存在一种只基于 RGB 的扰动，但能在不同多模态任务上都迁移有效的攻击方式？"
 
-融合层脆弱性： “像 DFormer 的 GAA/LEA 或 LOD 的 cross-attention，这些融合层是不是攻击的最佳切入点？有没有已有工作专门分析过融合层的鲁棒性？”
+融合层脆弱性： "像 DFormer 的 GAA/LEA 或 LOD 的 cross-attention，这些融合层是不是攻击的最佳切入点？有没有已有工作专门分析过融合层的鲁棒性？"
 
-“如果我要证明‘单模态攻击无效，但多模态协同攻击有效’，在实验上应该如何设计对照组，才能让结论更有说服力？”
+"如果我要证明'单模态攻击无效，但多模态协同攻击有效'，在实验上应该如何设计对照组，才能让结论更有说服力？"
 
 <!-- ### Sm3det (arXiv 2024) → 遥感多模态检测（RGB+SAR+高光谱） -->
 
