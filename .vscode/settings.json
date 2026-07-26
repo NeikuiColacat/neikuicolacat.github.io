@@ -1,0 +1,9 @@
+{
+  "editor.pasteAs.enabled": true,
+  "markdown.editor.filePaste.enabled": "always",
+  "markdown.editor.filePaste.copyIntoWorkspace": "mediaFiles",
+  "markdown.copyFiles.destination": {
+    "/**/*.md": "/assets/img/${unixTime}.${fileExtName}"
+  },
+  "markdown.copyFiles.overwriteBehavior": "nameIncrementally"
+}

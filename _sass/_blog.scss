@@ -101,6 +101,11 @@
 }
 
 .post {
+  .post-content img:not(.emoji) {
+    max-width: 100%;
+    height: auto;
+  }
+
   .post-meta {
     color: var(--global-text-color-light);
     font-size: 0.875rem;
