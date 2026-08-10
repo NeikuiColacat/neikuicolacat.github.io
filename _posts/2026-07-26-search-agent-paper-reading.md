@@ -192,7 +192,11 @@ $$
 
 ### 强化学习 bg review 
 
-首先我们有一个总的 reward 函数 ， 公式表达为 ： $J(\theta) = \mathbb{E}_{\tau \sim P_\theta} [R(\tau)] = \sum_\tau P_\theta(\tau)R(\tau)$
+首先我们有一个总的 reward 函数 ， 公式表达为 ：
+
+$$ 
+J(\theta) = \mathbb{E}_{\tau \sim P_\theta} [R(\tau)] = \sum_\tau P_\theta(\tau)R(\tau) 
+$$
 
 求导：
 
