@@ -16,26 +16,15 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "post-search-agent-论文阅读记录",
+        },{id: "post-agentic-ai-与-search-agent-学习笔记",
         
-          title: "Search Agent 论文阅读记录",
+          title: "Agentic AI 与 Search Agent 学习笔记",
         
-        description: "Paper reading notes on search agents, including query planning, retrieval, reflection, and evaluation",
+        description: "Notes on agentic AI, search agents, graph reasoning, and PPO",
         section: "Posts",
         handler: () => {
           
             window.location.href = "/blog/2026/search-agent-paper-reading/";
-          
-        },
-      },{id: "post-agent-ai-学习笔记",
-        
-          title: "Agent AI 学习笔记",
-        
-        description: "Notes from UC Berkeley CS294 Agentic AI course",
-        section: "Posts",
-        handler: () => {
-          
-            window.location.href = "/blog/2026/CS294-Agentic-AI/";
           
         },
       },{id: "post-数学观察",
