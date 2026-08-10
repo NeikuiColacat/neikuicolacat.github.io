@@ -1,8 +1,8 @@
 ---
 layout: post
-title: Search Agent 论文阅读记录
+title: Agentic AI 与 Search Agent 学习笔记
 date: 2026-07-26
-description: Paper reading notes on search agents, including query planning, retrieval, reflection, and evaluation
+description: Notes on agentic AI, search agents, graph reasoning, and PPO
 tags: [ml, agent]
 giscus_comments: false
 ---
@@ -10,6 +10,9 @@ giscus_comments: false
 ## 阅读列表
 
 - [阅读列表](#阅读列表)
+- [Anthropic Agent building 基础](#anthropic-agent-building-基础)
+  - [给出了anthropic的agent building的基础框架](#给出了anthropic的agent-building的基础框架-)
+  - [agent 不同于传统的 llm workflow](#agent-不同于传统的-llm-workflow)
 - [FlowSearch: Advancing Deep Research with Dynamic Structured Knowledge Flow](#flowsearch-advancing-deep-research-with-dynamic-structured-knowledge-flow)
   - [基本信息](#基本信息)
   - [研究背景与问题](#研究背景与问题)
@@ -26,6 +29,78 @@ giscus_comments: false
   - [目标 ： 希望最大化期望 reward](#目标--希望最大化期望-reward)
   - [存在问题](#存在问题)
   - [importance sampling](#importance-sampling)
+
+## Anthropic Agent building 基础
+
+[building effective agents](https://www.anthropic.com/engineering/building-effective-agents)
+
+### 给出了anthropic的agent building的基础框架 :
+
+1. 有一个用户输入
+2. 能向外部检索信息输入、调用工具
+3. 有一个记忆系统
+
+### agent 不同于传统的 llm workflow
+
+如果一个任务能够明确拆分为一个个步骤，那么就不需要agent，直接写成workflow就好了
+
+给出了几种workflow范式
+
+1. Prompt Chaining：提示词链
+   把一个任务拆成多个顺序步骤，每一次 LLM 调用处理上一步的输出。中间可以加入程序化检查，判断结果是否合格。
+
+适合：任务可以清晰拆解成固定子任务，并且每个子任务单独解决更容易。
+
+例子：
+
+先生成营销文案，再翻译成另一种语言；
+先写文档大纲，检查大纲是否符合要求，再根据大纲写正文。
+
+2. Routing：路由
+   先把输入分类，然后分发给不同的后续流程、prompt 或工具。这样可以针对不同类别优化不同流程，而不是用一个大而全的 prompt 处理所有情况。
+
+适合：输入类型差异明显，且分类比较可靠。
+
+例子：
+
+客服问题按“普通咨询 / 退款 / 技术支持”分流；
+简单问题交给更便宜的小模型，复杂问题交给更强模型。
+
+3. Parallelization：并行化
+   让多个 LLM 调用同时处理任务，然后用程序聚合结果。并行化有两种典型方式：
+
+Sectioning：把任务拆成独立部分并行处理；
+Voting：让多个模型调用从不同角度给出结果，再投票或聚合。
+适合：子任务可以并行，或需要多个独立判断提高可靠性。
+
+例子：
+
+一个模型处理用户请求，另一个模型单独做安全审查；
+多个模型从不同角度审查代码漏洞。
+
+4. Orchestrator-Workers：编排器—工人模式
+   由一个中心 LLM 充当编排器，动态拆解任务，分配给多个 worker LLM，然后汇总结果。
+
+关键区别：它和普通并行化外形相似，但子任务不是预先写死的，而是由编排器根据输入动态决定。
+
+适合：复杂任务，无法提前知道需要拆成哪些子任务。
+
+例子：
+
+代码 Agent 根据需求判断要修改哪些文件；
+复杂搜索任务中，从多个来源收集、比较、分析信息。
+
+5. Evaluator-Optimizer：评估器—优化器模式
+   一个 LLM 负责生成答案，另一个 LLM 负责评价并给反馈，系统在循环中不断改进输出。
+
+适合：有明确评价标准，并且迭代改进确实能提升质量。
+
+例子：
+
+文学翻译：翻译模型先产出初稿，评估模型指出语气、隐喻、细节问题；
+复杂搜索：评估器判断当前证据是否足够，是否还需要继续检索。
+
+## A
 
 ## FlowSearch: Advancing Deep Research with Dynamic Structured Knowledge Flow
 
@@ -106,9 +181,7 @@ takeaway : 让agent自己写代码操纵graph的效果是最好的
 ### 目标 ： 希望最大化期望 reward
 
 $$
-
 J(\theta) =  \mathbb{E}_{\tau \sim \pi_\theta} [R(\tau)]
-
 $$
 
 ### 存在问题
@@ -132,7 +205,7 @@ $$
 
 现在得到了因子 $$ r_t $$ 用于对旧采样数据进行加权 ， 这是第一个因子
 
-同时还需要评估这个动作到底好不好 ， 也就是 $A_t$ ，用于描述相对于之前的策略当前的动作能够更好还是更坏， 这是第二个因子
+同时还需要评估这个动作到底好不好 ， 也就是 $A_t$ ，用于描述这个动作的价值−该状态下旧策略的平均动作价值， 这是第二个因子
 
 $$
 A_t = Q^{\pi_{\theta_{\mathrm{old}}}}(s_t, a_t) - V^{\pi_{\theta_{\mathrm{old}}}}(s_t)
@@ -148,7 +221,11 @@ So how do we get the Q ?
 
 不知道 Q ， 那么就执行一次 action 进入到下一个状态 ， 然后就能拿到 $V (s_{t+1})$
 
-所以 $Q(s_t , a_t) \approx r_t + \gamma V(s_{t+1}) $
+所以：
+
+$$
+Q(s_t, a_t) \approx r_t + \gamma V(s_{t+1})
+$$
 
 继续 将 $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$
 
@@ -172,7 +249,7 @@ $$
 
 $V(s_t)$ 用来估值的也是一个神经网络 ， 需要训练
 
-Vt loss 通常写为 
+Vt loss 通常写为
 
 $$
 L_V = (V_\theta(s_t) - R_t)^2
@@ -190,12 +267,12 @@ $$
 H(\pi) = -\sum_a \pi(a|s) \log \pi(a|s)
 $$
 
-### 强化学习 bg review 
+### 强化学习 bg review
 
 首先我们有一个总的 reward 函数 ， 公式表达为 ：
 
-$$ 
-J(\theta) = \mathbb{E}_{\tau \sim P_\theta} [R(\tau)] = \sum_\tau P_\theta(\tau)R(\tau) 
+$$
+J(\theta) = \mathbb{E}_{\tau \sim P_\theta} [R(\tau)] = \sum_\tau P_\theta(\tau)R(\tau)
 $$
 
 求导：
