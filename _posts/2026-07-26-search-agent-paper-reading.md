@@ -11,8 +11,9 @@ giscus_comments: false
 
 - [阅读列表](#阅读列表)
 - [Anthropic Agent building 基础](#anthropic-agent-building-基础)
-  - [给出了anthropic的agent building的基础框架](#给出了anthropic的agent-building的基础框架-)
+  - [给出了anthropic的agent building的基础框架 :](#给出了anthropic的agent-building的基础框架-)
   - [agent 不同于传统的 llm workflow](#agent-不同于传统的-llm-workflow)
+- [A](#a)
 - [FlowSearch: Advancing Deep Research with Dynamic Structured Knowledge Flow](#flowsearch-advancing-deep-research-with-dynamic-structured-knowledge-flow)
   - [基本信息](#基本信息)
   - [研究背景与问题](#研究背景与问题)
@@ -26,9 +27,14 @@ giscus_comments: false
   - [关键图表记录](#关键图表记录-1)
   - [我的理解与思考](#我的理解与思考-1)
 - [PPO 算法](#ppo-算法)
+  - [符号约定](#符号约定)
   - [目标 ： 希望最大化期望 reward](#目标--希望最大化期望-reward)
   - [存在问题](#存在问题)
   - [importance sampling](#importance-sampling)
+  - [强化学习 bg review](#强化学习-bg-review)
+    - [为什么要给 policy 套一层 log？](#为什么要给-policy-套一层-log)
+- [Data pipeline](#data-pipeline)
+  - [A Survey for LLM Agent Trajectory Analysis:  From Failure Attribution to Enhancement](#a-survey-for-llm-agent-trajectory-analysis--from-failure-attribution-to-enhancement)
 
 ## Anthropic Agent building 基础
 
@@ -178,10 +184,21 @@ takeaway : 让agent自己写代码操纵graph的效果是最好的
 
 ## PPO 算法
 
+### 符号约定
+
+- $\theta$：policy network 的参数；$\phi$：value network 的参数
+- $P_\theta(\tau)$：策略诱导出的轨迹分布；$R(\tau)$：整条轨迹的累计回报
+- $r_t$：环境在时间步 $t$ 给出的即时奖励；$\rho_t(\theta)$：新旧 policy 的概率比
+- $\hat{A}_t$：advantage 的估计值；$\delta_t$：TD residual
+- $\gamma$：折扣因子；$\lambda$：GAE 参数；$\epsilon$：PPO clip 范围；$T$：轨迹长度
+- $J$ 表示需要最大化的 objective；$L$ 表示代码中需要最小化的 loss
+
+很多 PPO 论文会把概率比也写成 $r_t(\theta)$。这里改用 $\rho_t(\theta)$，只是为了避免它与环境即时奖励 $r_t$ 冲突。
+
 ### 目标 ： 希望最大化期望 reward
 
 $$
-J(\theta) =  \mathbb{E}_{\tau \sim \pi_\theta} [R(\tau)]
+J(\theta) = \mathbb{E}_{\tau \sim P_\theta}\left[R(\tau)\right]
 $$
 
 ### 存在问题
@@ -197,66 +214,71 @@ introducing : importance sampling
 先求出新 policy 做出这个动作相比老policy 的比例关系
 
 $$
-r_t(\theta)
-=
-\frac{\pi_\theta(a_t \mid s_t)}
-{\pi_{\theta_{\mathrm{old}}}(a_t \mid s_t)}
+\rho_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\mathrm{old}}}(a_t \mid s_t)}
 $$
 
-现在得到了因子 $$ r_t $$ 用于对旧采样数据进行加权 ， 这是第一个因子
+现在得到了概率比 $\rho_t(\theta)$，用于对旧 policy 采样的数据进行修正，这是第一个因子。
 
-同时还需要评估这个动作到底好不好 ， 也就是 $A_t$ ，用于描述这个动作的价值−该状态下旧策略的平均动作价值， 这是第二个因子
+同时还需要评估这个动作到底好不好。advantage 表示这个动作的价值减去该状态下旧策略的平均价值，这是第二个因子：
 
 $$
-A_t = Q^{\pi_{\theta_{\mathrm{old}}}}(s_t, a_t) - V^{\pi_{\theta_{\mathrm{old}}}}(s_t)
+A_t^{\pi_{\theta_{\mathrm{old}}}} = Q^{\pi_{\theta_{\mathrm{old}}}}(s_t,a_t) - V^{\pi_{\theta_{\mathrm{old}}}}(s_t)
 $$
 
-V 表示按照当前status能拿到的reward
+其中 $V(s_t)$ 表示从状态 $s_t$ 出发、继续按照 policy 行动时的期望累计回报。
 
-Q 表示按当前status执行action之后能拿到的reward
+$Q(s_t,a_t)$ 表示在状态 $s_t$ 先执行动作 $a_t$，之后继续按照 policy 行动时的期望累计回报。实际训练时通常用 GAE 得到它们差值的估计量 $\hat{A}_t$。
 
 ---
 
 So how do we get the Q ?
 
-不知道 Q ， 那么就执行一次 action 进入到下一个状态 ， 然后就能拿到 $V (s_{t+1})$
-
-所以：
+不知道完整的 $Q$ 时，可以用即时奖励和下一个状态的 value 做 one-step bootstrap：
 
 $$
-Q(s_t, a_t) \approx r_t + \gamma V(s_{t+1})
+\hat{Q}_t = r_t + \gamma V_{\phi_{\mathrm{old}}}(s_{t+1})
 $$
 
-继续 将 $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$
+如果 $s_{t+1}$ 是终止状态，就把后面的 value 项设为 $0$。
+
+对应的 TD residual 是：
+
+$$
+\delta_t = r_t + \gamma V_{\phi_{\mathrm{old}}}(s_{t+1}) - V_{\phi_{\mathrm{old}}}(s_t)
+$$
 
 如果不只是往前看一步 ， 而是看多步 ， 就有
 
-$A_t^{GAE}=\sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}$
+$$
+\hat{A}_t^{\mathrm{GAE}} = \sum_{l=0}^{T-t-1}(\gamma\lambda)^l\delta_{t+l}
+$$
+
+后文简写成 $\hat{A}_t$ 时，默认指这个 GAE advantage estimate。
 
 $\lambda$ 用于控制 Advantage 看多远
 
 ---
 
-两个因子相乘 得到因子，同时为了限制新策略和旧策略的差距，使用了一个clip函数来限制 $ r_t $ 范围
+将概率比和 advantage 相乘，同时用 clip 限制新旧 policy 的差距。
 
-最终得到PPO核心目标 ：
+最终得到需要最大化的 PPO clipped objective：
 
 $$
-L^{CLIP}(\theta) = \mathbb{E}_t \left[\min \left( r_t(\theta) A_t, \text{clip}(r_t(\theta), 1 - \epsilon, 1 + \epsilon) A_t \right)\right]
+J_{\mathrm{clip}}(\theta) = \mathbb{E}_t\left[\min\left(\rho_t(\theta)\hat{A}_t,\operatorname{clip}(\rho_t(\theta),1-\epsilon,1+\epsilon)\hat{A}_t\right)\right]
 $$
 
 ---
 
-$V(s_t)$ 用来估值的也是一个神经网络 ， 需要训练
-
-Vt loss 通常写为
+$V_\phi(s_t)$ 也是一个需要训练的神经网络。先用 rollout 时的旧 value 和 GAE 构造固定的 value target：
 
 $$
-L_V = (V_\theta(s_t) - R_t)^2
+\hat{V}_t^{\mathrm{target}} = V_{\phi_{\mathrm{old}}}(s_t) + \hat{A}_t
 $$
 
+value loss 通常写为：
+
 $$
-R_t = V_{old}(s_t) + A_t
+L_V(\phi) = \left(V_\phi(s_t) - \hat{V}_t^{\mathrm{target}}\right)^2
 $$
 
 ---
@@ -264,7 +286,7 @@ $$
 entropy bonus 用于鼓励策略探索随机性
 
 $$
-H(\pi) = -\sum_a \pi(a|s) \log \pi(a|s)
+H\left(\pi_\theta(\cdot \mid s)\right) = -\sum_a \pi_\theta(a \mid s)\log \pi_\theta(a \mid s)
 $$
 
 ### 强化学习 bg review
@@ -272,7 +294,7 @@ $$
 首先我们有一个总的 reward 函数 ， 公式表达为 ：
 
 $$
-J(\theta) = \mathbb{E}_{\tau \sim P_\theta} [R(\tau)] = \sum_\tau P_\theta(\tau)R(\tau)
+J(\theta) = \mathbb{E}_{\tau \sim P_\theta}\left[R(\tau)\right] = \sum_\tau P_\theta(\tau)R(\tau)
 $$
 
 求导：
@@ -281,25 +303,22 @@ $$
 \nabla_\theta J(\theta) = \sum_\tau \nabla_\theta P_\theta(\tau)R(\tau)
 $$
 
-然后因为采样轨迹已经固定了 ， 我们对策略 $\theta$ 求导与 reward 函数无关 ， 所以我们可以把 reward 函数提出来 ， 然后对策略求导
+对于一条固定轨迹 $\tau$，这里假设环境给出的 $R(\tau)$ 不直接依赖 policy 参数 $\theta$，因此求导只作用在轨迹概率上：
 
 $$
-\nabla_\theta J(\theta)
-= \sum_\tau R(\tau)\nabla_\theta P_\theta(\tau)
+\nabla_\theta J(\theta) = \sum_\tau R(\tau)\nabla_\theta P_\theta(\tau)
 $$
 
 接下来给 policy 的轨迹概率 $P_\theta(\tau)$ 套一层 log。因为 $\log x$ 的导数是 $1/x$，所以求导后会得到：
 
 $$
-\nabla_\theta \log P_\theta(\tau)
-= \frac{1}{P_\theta(\tau)}\nabla_\theta P_\theta(\tau)
+\nabla_\theta \log P_\theta(\tau) = \frac{1}{P_\theta(\tau)}\nabla_\theta P_\theta(\tau)
 $$
 
 将等式两边同时乘以 $P_\theta(\tau)$，policy 概率的梯度就可以等价写成：
 
 $$
-\nabla_\theta P_\theta(\tau)
-= P_\theta(\tau)\nabla_\theta \log P_\theta(\tau)
+\nabla_\theta P_\theta(\tau) = P_\theta(\tau)\nabla_\theta \log P_\theta(\tau)
 $$
 
 将这个等价形式代回目标函数的梯度：
@@ -314,22 +333,24 @@ $$
 \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim P_\theta}\left[R(\tau)\nabla_\theta \log P_\theta(\tau)\right]
 $$
 
-一条轨迹由多个时间步上的 action 组成。只保留与 $\theta$ 有关的 policy 部分，轨迹概率可以写成连乘形式：
+完整的轨迹概率还包含初始状态概率和环境转移概率，但它们不依赖 $\theta$。因此只看与 $\theta$ 有关的部分时，可以简写为：
 
 $$
-P_\theta(\tau) = \prod_{t=0}^{T-1}\pi_\theta(a_t \mid s_t)
+P_\theta(\tau) \propto \prod_{t=0}^{T-1}\pi_\theta(a_t \mid s_t)
 $$
 
 #### 为什么要给 policy 套一层 log？
 
 套 log 不是为了把所有 action 都采样出来，实际训练仍然只会采样有限数量的轨迹。它的核心作用是配合前面的对数导数技巧，把 $\nabla_\theta P_\theta(\tau)$ 改写成 $P_\theta(\tau)\nabla_\theta\log P_\theta(\tau)$。这样 $P_\theta(\tau)$ 就可以作为采样分布被吸收到期望中，训练时只需要对采样得到的轨迹求平均，不需要枚举所有可能的轨迹。
 
-另外，一条轨迹的概率是多个 action probability 的连乘。套 log 后，连乘会变成逐时间步的连加，求梯度时也就能拆成每个 action 的 $\nabla_\theta\log\pi_\theta(a_t\mid s_t)$。代码中直接累加 log probability 还可以避免很多小概率连续相乘造成的数值下溢。
+离散 action 的 `sample()` 操作本身仍然不可导。这个技巧并没有对采样出的 action 求导，而是把 action 当作固定索引，对 policy 分配给它的 $\log\pi_\theta(a_t\mid s_t)$ 求导。
 
-因此，轨迹概率套 log 后可以写成：
+另外，轨迹概率中与 policy 有关的部分是多个 action probability 的连乘。套 log 后，连乘会变成逐时间步的连加，求梯度时也就能拆成每个 action 的 $\nabla_\theta\log\pi_\theta(a_t\mid s_t)$。代码中直接累加 log probability 还可以避免很多小概率连续相乘造成的数值下溢。
+
+用 $C(\tau)$ 表示所有与 $\theta$ 无关的初始状态和环境转移项，轨迹概率套 log 后可以写成：
 
 $$
-\log P_\theta(\tau) = \sum_{t=0}^{T-1}\log \pi_\theta(a_t \mid s_t)
+\log P_\theta(\tau) = C(\tau) + \sum_{t=0}^{T-1}\log \pi_\theta(a_t \mid s_t)
 $$
 
 然后对 $\theta$ 求导：
@@ -358,14 +379,165 @@ $$
 L_{\mathrm{policy}}(\theta) = -\frac{1}{B}\sum_{b=1}^{B}\operatorname{stopgrad}(\hat{A}_b)\log \pi_\theta(a_b \mid s_b)
 $$
 
-上面是数据由当前策略 $\pi_\theta$ 采样时的 on-policy 形式。PPO 实际使用旧策略 $\pi_{\theta_{\mathrm{old}}}$ 采集的数据，因此不乘完整的轨迹概率，而是使用新旧策略的概率比进行修正(代码实现新旧policy比例需要做除法 ， 用log函数减法替代)：
+上面是数据由当前策略 $\pi_\theta$ 采样时的 on-policy 形式。PPO 使用旧策略 $\pi_{\theta_{\mathrm{old}}}$ 采集的数据，因此不乘完整的轨迹概率，而是用新旧策略的概率比进行修正。代码通常用两个 log probability 相减后再取 exp，等价于直接做除法：
 
 $$
-r_b(\theta) = \exp\left(\log \pi_\theta(a_b \mid s_b)-\log \pi_{\theta_{\mathrm{old}}}(a_b \mid s_b)\right)
+\rho_b(\theta) = \exp\left(\log \pi_\theta(a_b \mid s_b)-\log \pi_{\theta_{\mathrm{old}}}(a_b \mid s_b)\right)
 $$
 
 因此 PPO 在代码中实际最小化的 policy loss 是，其中 $\hat{A}_b$ 同样作为已经计算好的固定量，不对它进行 policy 方向的反向传播：
 
 $$
-L_{\mathrm{PPO}}(\theta) = -\frac{1}{B}\sum_{b=1}^{B}\min\left(r_b(\theta)\hat{A}_b,\operatorname{clip}(r_b(\theta),1-\epsilon,1+\epsilon)\hat{A}_b\right)
+L_{\mathrm{PPO}}(\theta) = -\frac{1}{B}\sum_{b=1}^{B}\min\left(\rho_b(\theta)\hat{A}_b,\operatorname{clip}(\rho_b(\theta),1-\epsilon,1+\epsilon)\hat{A}_b\right)
 $$
+
+
+## Data pipeline 
+
+| Stage                          | 你要理解的问题                        |  阅读深度 | 我建议怎么读                                              |
+| ------------------------------ | ------------------------------ | ----: | --------------------------------------------------- |
+| 1. Trajectory Collection       | Agent 应该记录哪些 trace？            |    ★★ | 看综述即可，重点理解 schema / observability                   |
+| 2. Evaluation / Verifier       | 怎么知道 trajectory 成功还是失败？        |    ★★ | 结合你已有 RL 知识看 verifier，不必单独深挖                        |
+| 3. Failure Attribution         | **到底哪一步导致失败？**                 | ★★★★★ | 当前第一重点：Survey → AgentRx → STRACE                    |
+| 4. Capability Gap Mining       | **大量 failure 背后缺什么能力？**        | ★★★★★ | 当前第二重点；从 failure pattern / clustering / RCA 文献自己拼起来 |
+| 5. Data Curation               | **哪些经验值得用于训练？**                | ★★★★★ | Beyond Scaling → CurateEvo                          |
+| 6. Data / Hard-case Generation | **缺的数据怎么制造？**                  |  ★★★★ | hard-example / adversarial environment / self-play  |
+| 7. Curriculum / Sampling       | **现在最应该训练什么？**                 |  ★★★★ | Self-Evolving Curriculum + adversarial curriculum   |
+| 8. Learning / Consolidation    | 数据最后进 weights、memory 还是 skill？ |   ★★★ | 你已经懂 SFT/RL，重点补 experience→memory/skill             |
+
+
+### A Survey for LLM Agent Trajectory Analysis:  From Failure Attribution to Enhancement
+
+![总体架构图](../assets/img/1789981933775.png)
+
+一个 LLM agent system 由以下几个部分构成 ： 
+
+1. Prompt 
+2. Model
+3. Harness  (Memory Tools etc)
+
+这些东西 和 **environment** 交互然后生成 **trajectory**
+
+and after that , we got a failure as a final result of the trajactory
+
+Then we need to do **failure attribution** to find out which step in the trajectory caused the failure
+
+---
+
+OK , now , 作者将整个 harness 分为以下几个模块 
+
+$g$ , decides which agent to act in the next move , I : $h_t$  , O : $agent_id$
+
+$\phi$ decides what provides the agent to see , I : $h_t$  , O : $x_t$
+
+$u$ decides how to update after the agent performs an action , I : $h_t , agent_id , x_t , y_t$ , O : $h_{t+1}$
+
+$\pi$ decides acgent's policy , I : $x_t$ , O : $y_t$
+
+define environment at step t as $h_t$
+
+$x_t = \phi(h_t)$
+
+$y_t = \pi(x_t) $ , which is the action
+
+define a step as $s_t = (step \space id , agent \space id , h_t, x_t, y_t)$
+
+and such steps form a trajectory $\tau = (s_0, s_1, ..., s_T)$
+
+---
+
+所以什么样的failure 是重要的呢 ？ author 觉得不可挽回的 failure 是重要的
+
+就是做出这个 action 之后 所有 possible future trajectory 都无法达成最终 success 的状态 ， 这种failure是重要的 
+
+---
+
+作者给出了常见的 failure pattern taxonomy
+
+1. 指令遵循 还有 输出格式 遵循 
+2. 长程规划 和 问题拆分结构
+3. multi agent coordination
+4. LLM reasoning and knowledge 
+
+----
+
+So how to localiztion which part failed ? 
+
+| 类别 | 核心思想 | 代表方法/方向 |
+|---|---|---|
+| **1. Pattern Analysis** | 从大量成功/失败 trajectory 中找统计相关模式 | FAMAS、SDBL、CORRECT、AgentEval 等 |
+| **2. LLM Reasoning** | 直接让 LLM 阅读 trajectory，语义推理 root cause | Who&When、ECHO、RAFFLES、CHIEF、A2P、AgentRx 等 |
+| **3. Fine-tuned Tracer Model** | 专门训练一个 failure-attribution 模型 | AgenTracer、GraphTracer、Aegis-Kong 等 |
+| **4. Dynamic Runtime** | 修改怀疑的 step 并重新 rollout，用 counterfactual 验证因果 | DoVer、AgentDebug、TraceElephant、AgentFail 等 |
+
+---
+
+So how to modify this system after we find the root cause of the failure ?
+
+| 大类 | 改什么 | 典型做法 | 代表方法 | 适合解决什么 failure |
+|---|---|---|---|---|
+| **1. Structural & Workflow Optimization** | 改 Agent **外部系统结构** | 改 workflow、agent topology、routing、system instruction、environment | **Aegis、Maestro、CE-Graph、ILWS** | routing 错、agent 分工不合理、workflow 设计差、系统结构导致的重复失败 |
+| **2. Agent Internal Optimization** | 改 Agent **自身能力 / policy** | 改 prompt、instruction、policy、模型权重、memory、skill | **SCOPE、AgentDevel、ReCreate、SEAlign、Trajectory-Informed Memory、Trace2Skill** | reasoning、planning、决策、知识、经验不足等内部能力 failure |
+| **3. Runtime & Supervisory Optimization** | **不一定永久改 Agent**，而是在执行时干预 | context filtering、monitor、supervisor、实时纠错、nudge | **AgentDiet、SUPERVISOR AGENT、Wink、Process-Centric Analysis** | context 冗余、Agent 中途跑偏、重复动作、可以在执行过程中及时恢复的 failure |
+
+
+--- 
+
+what should we store to debug a trajectory ? 
+
+| 信息 | 作用 |
+|---|---|
+| `step_id` | 这是第几步 |
+| `agent_id / agent_name` | 谁执行了这一步 |
+| `input_context` | 这一步 Agent 看到了什么 |
+| `output / action` | Agent 决定了什么、输出了什么 |
+| `tool_call` | 调了哪个工具、参数是什么 |
+| `tool_result / status` | 工具返回什么，成功还是失败 |
+
+---
+
+which part of ability is missing ？ 
+
+backtracking / exploration
+task decomposition
+observation reading
+self-verification
+objective quality
+
+---
+
+what kind of benchmark we need ? 
+
+1. real world trajectory , GT marked from human reviewer
+2. real world trajectory , mannualy make some steps wrong , so we could have GT 
+
+---
+
+there is a problem 
+ 
+we know which step is wrong , but we do not know what cause this step wrong
+
+there is a gap between failure attribution and enhancement 
+
+a good atrribution should help recursively enhance the agent 
+
+---
+
+from traditional SE to Agent trajectory 
+
+| Agent 里的东西 | 传统软件工程里类似什么 |
+|---|---|
+| Failure taxonomy | defect classification |
+| Pattern-based attribution | spectrum-based fault localization / log anomaly detection |
+| Runtime debugging | replay / breakpoint / time-travel debugging |
+| Monitoring | distributed tracing / log observability |
+| Enhancement | program repair / configuration tuning |
+
+---
+
+展望未来 ： 
+
+未来更强的 Agent debugging，不只是找异常 step，而是建立“错误传播的因果图”。
+
+
+
