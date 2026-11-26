@@ -1,0 +1,367 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 586" lang="zh-CN" role="group" aria-labelledby="title desc">
+  <title id="title">同一个学生，SFT 与 OPD 的四种训练组合</title>
+  <desc id="desc">两个教师峰分别代表解题路径 A 和解题路径 B。学生只能移动一个窄峰，起初约百万分之一的概率尝试分步解题。门槛左侧的样本都直接作答。图下比较 SFT 和 OPD 冷启动后，有多少学生样本走到检验结果这一步。第 14 步的菱形标出交接点。</desc>
+  <style>
+    :root {
+      color-scheme: light dark; font: 15px system-ui, sans-serif;
+      --paper: #fbfaf7; --plot: #fffefa; --ink: #202b2c; --muted: #556463;
+      --rule: #c9d1cd; --grid: #e3e8e4; --terrain: #778381; --teal: #087667; --rust: #ac4923;
+      color: var(--ink);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --paper: #202626; --plot: #232a2a; --ink: #f5f1e7; --muted: #c0cbca;
+        --rule: #53605d; --grid: #374440; --terrain: #adbcb9; --teal: #61d9bb; --rust: #ffae85; }
+    }
+    :root { --accent: var(--teal); }
+    text { fill: var(--ink); }
+    .place { font: 600 12px system-ui, sans-serif; text-anchor: middle; paint-order: stroke; stroke: var(--plot); stroke-width: 3px; }
+    .teacher { fill: none; stroke: var(--terrain); stroke-width: 1; stroke-dasharray: 3 2.5; }
+    .trail { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .ring { fill: var(--accent); fill-opacity: .055; stroke: var(--accent); stroke-width: 1.5; }
+    .pull { fill: none; stroke: var(--teal); stroke-width: 1.1; opacity: .8; marker-end: url(#teal-tip); }
+    .demo { fill: var(--teal); stroke: var(--plot); stroke-width: .7; }
+    #samples circle { fill: var(--muted); opacity: .42; stroke: var(--plot); stroke-width: .6; }
+    #samples .favored { fill: var(--accent); opacity: 1; stroke-width: .9; }
+    .stagebar, .controls, .legend { display: flex; align-items: center; }
+    .stagebar { gap: 8px; height: 100%; }
+    button, select { font: inherit; color: var(--ink); cursor: pointer; }
+    .stage { padding: 4px 6px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); }
+    .stage[aria-current="step"] { color: var(--accent); border-color: currentColor; font-weight: 670; }
+    .stagebar span { color: var(--muted); }
+    select, #play { border: 1px solid var(--rule); border-radius: 5px; padding: 3px 6px; background: var(--plot); min-height: 30px; }
+    #play { background: var(--ink); color: var(--paper); min-width: 58px; }
+    .legend { gap: 15px; color: var(--muted); height: 100%; font-size: 14px; }
+    .legend span { white-space: nowrap; }
+    .key { display: inline-block; width: 16px; border-top: 2px solid; margin-right: 4px; vertical-align: middle; }
+    .target-key { border-top-style: dashed; color: var(--terrain); }
+    .sample-key { font-size: 13px; color: var(--teal); }
+    .benchmark { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 14px; font-size: 14px; }
+    .benchmark[hidden] { display: none; }
+    .benchmark strong { grid-column: 1 / -1; font-weight: 600; }
+    .benchmark span { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+    .benchmark i { flex: 1; height: 5px; align-self: center; border-radius: 2px; background: var(--grid); }
+    .benchmark i::before { content: ""; display: block; width: var(--fraction, 0%); height: 100%; border-radius: inherit; background: currentColor; }
+    .benchmark output { min-width: 0; font-size: inherit; }
+    .coverage { border-top: 1px solid var(--rule); padding-top: 5px; }
+    .coverage table { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .coverage th, .coverage td { text-align: center; padding: 3px 2px; white-space: nowrap; }
+    .coverage th:first-child { width: 76px; text-align: left; }
+    .coverage thead th { font-weight: 600; }
+    .coverage thead th:first-child { color: var(--muted); }
+    .coverage .stage-name + .stage-name { position: relative; }
+    .coverage .stage-name + .stage-name::before { content: "›"; color: var(--terrain); position: absolute; left: -3px; }
+    .coverage tbody { color: var(--muted); }
+    .coverage tbody th { font-weight: 500; }
+    .coverage tbody th::before { content: ""; display: inline-block; width: 11px; font-size: 10px; }
+    .coverage .training { color: var(--accent); font-weight: 650; }
+    .coverage .training th::before { content: "▶"; }
+    .coverage td { position: relative; padding-bottom: 6px; }
+    .coverage td::after {
+      content: ""; position: absolute; height: 3px; bottom: 2px; left: 9%; right: 9%; border-radius: 3px;
+      background: linear-gradient(to right, currentColor var(--reach, 100%), var(--grid) var(--reach, 100%));
+    }
+    .feedback { margin: 6px 0 0; font-size: 14px; }
+    .feedback b { color: var(--accent); margin-right: 5px; }
+    .controls { height: 100%; gap: 10px; }
+    .controls[hidden] { display: none; }
+    input { cursor: pointer; accent-color: var(--teal); flex: 1; min-width: 40px; }
+    output { min-width: 49px; font-variant-numeric: tabular-nums; text-align: right; }
+    @media (max-width: 530px) {
+      .place { font-size: 15px; }
+      .legend { gap: 9px; font-size: 13px; }
+      .key { width: 13px; }
+      .coverage table, .feedback { font-size: 13px; }
+      .benchmark { font-size: 13px; column-gap: 9px; }
+      .coverage th:first-child { width: 68px; }
+    }
+  </style>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M0 32V0H32" fill="none" stroke="var(--grid)" stroke-width=".8" stroke-dasharray="2 3"/>
+    </pattern>
+    <radialGradient id="terrain-fill">
+      <stop stop-color="var(--terrain)" stop-opacity=".22"/><stop offset="1" stop-color="var(--terrain)" stop-opacity="0"/>
+    </radialGradient>
+    <g id="target">
+      <ellipse rx="44" ry="34" fill="url(#terrain-fill)"/>
+      <g class="teacher"><ellipse rx="42" ry="32"/><ellipse rx="29.4" ry="22.4"/><ellipse rx="14.7" ry="11.2"/></g>
+    </g>
+    <g id="examples" class="demo">
+      <circle cx="-9" cy="-6" r="2.3"/><circle cx="9" cy="6" r="2.3"/>
+      <circle cx="-4" cy="7" r="2.3"/><circle cx="4" cy="-7" r="2.3"/>
+      <circle cx="16" cy="-1" r="2.3"/><circle cx="-16" cy="1" r="2.3"/>
+    </g>
+    <marker id="teal-tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="var(--teal)"/>
+    </marker>
+    <marker id="rust-tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="var(--rust)"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" rx="10" fill="var(--paper)"/>
+  <foreignObject id="header" x="14" y="8" width="632" height="36">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="stagebar">
+      <button class="stage" id="cold" type="button" aria-current="step" title="回到冷启动起点">冷启动</button>
+      <select id="cold-method" aria-label="冷启动方法">
+        <option value="sft">SFT</option><option value="opd">OPD</option>
+      </select>
+      <span aria-hidden="true">→</span>
+      <button class="stage" id="handoff" type="button" title="跳到第 14 步的交接点">后续训练</button>
+      <select id="method" aria-label="后续训练方法">
+        <option value="sft">SFT</option><option value="opd" selected="selected">OPD</option>
+      </select>
+    </div>
+  </foreignObject>
+  <svg id="map" x="12" y="52" width="636" height="286" viewBox="0 0 440 198">
+    <rect x=".5" y=".5" width="439" height="197" rx="4" fill="var(--plot)" stroke="var(--rule)"/>
+    <rect x="1" y="1" width="438" height="196" fill="url(#grid)"/>
+    <rect x="1" y="1" width="164" height="196" fill="var(--terrain)" opacity=".065"/>
+    <path d="M165 3v192" stroke="var(--terrain)" stroke-dasharray="2 3"/>
+    <text class="place" x="165" y="17">分步解题门槛</text>
+    <text class="place" x="82" y="39">初始选路概率 ≈ 10⁻⁶</text>
+    <use href="#target" x="272" y="145"/><use href="#target" x="345" y="58"/>
+    <text x="272" y="189" class="place">解题路径 A</text><text x="345" y="18" class="place">解题路径 B</text>
+    <path d="M61 143l8 8m-8 0l8 -8" fill="none" stroke="var(--muted)" stroke-width="1.6"/>
+    <text x="65" y="189" class="place">起点 · 直接作答</text>
+    <path id="cold-trail" class="trail" stroke="var(--teal)"/>
+    <path id="late-trail" class="trail" stroke="var(--rust)"/>
+    <path id="fork" d="M0 -4L4 0L0 4L-4 0Z" fill="var(--plot)" stroke="var(--ink)" stroke-width="1.5" display="none"><title>第 14 步 · 冷启动交接点</title></path>
+    <g id="pulls" class="pull"><path d="M65 147L239 145"/><path d="M65 147L300 72"/></g>
+    <g id="demonstrations"><use href="#examples" x="272" y="145"/><use href="#examples" x="345" y="58"/></g>
+    <g id="student" transform="translate(65 147)">
+      <g class="ring"><ellipse rx="39.9" ry="30.4"/><ellipse rx="27.3" ry="20.8"/><ellipse rx="14.7" ry="11.2"/></g>
+      <circle r="2.8" fill="var(--accent)" stroke="var(--plot)" stroke-width="1"/>
+    </g>
+    <g id="samples" display="none"/>
+    <path id="next-move" fill="none" stroke="var(--accent)" stroke-width="2" marker-end="url(#rust-tip)" display="none"/>
+  </svg>
+  <foreignObject id="legend-box" x="16" y="340" width="628" height="26">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="legend">
+      <span><i class="key target-key"></i>示范双峰</span><span><i class="key"></i>学生分布</span>
+      <span><b id="sample-key" class="sample-key">●</b> <span id="sample-label">教师示范</span></span>
+    </div>
+  </foreignObject>
+  <foreignObject id="benchmark-box" x="16" y="369" width="628" height="49">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="benchmark" aria-label="SFT 与 OPD 冷启动的同期比较" hidden="hidden">
+      <strong>冷启动第 14 步 · 走到检验结果的学生样本</strong>
+      <span style="color:var(--teal)">SFT<i></i><output id="score-sft"></output></span>
+      <span style="color:var(--rust)">OPD<i></i><output id="score-opd"></output></span>
+    </div>
+  </foreignObject>
+  <foreignObject id="coverage-box" x="16" y="420" width="628" height="119">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="coverage">
+      <table aria-label="本批轨迹到达各步骤的比例">
+        <thead><tr><th scope="col">到达率</th><th class="stage-name" scope="col">读题</th><th class="stage-name" scope="col">选择路径</th><th class="stage-name" scope="col">展开推导</th><th class="stage-name" scope="col">检验结果</th></tr></thead>
+        <tbody>
+          <tr id="teacher-reach" class="training"><th scope="row">教师示范</th><td>100%</td><td>100%</td><td>100%</td><td>100%</td></tr>
+          <tr id="student-reach"><th scope="row">学生采样</th><td>100%</td><td style="--reach:0%">0%</td><td style="--reach:0%">0%</td><td style="--reach:0%">0%</td></tr>
+        </tbody>
+      </table>
+      <p class="feedback"><b id="feedback-mode">SFT</b><span id="feedback">学生尚未检验结果，示范已覆盖这一步。</span></p>
+    </div>
+  </foreignObject>
+  <foreignObject id="toolbar" x="16" y="541" width="628" height="37">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="controls" hidden="hidden">
+      <button type="button" id="play">播放</button>
+      <input id="step" type="range" min="0" max="38" value="0" aria-label="训练步数"/>
+      <output id="count" for="step">0 / 38</output>
+    </div>
+  </foreignObject>
+  <script><![CDATA[
+    const byId = id => document.getElementById(id);
+    const map = byId("map"), student = byId("student");
+    const coldMethod = byId("cold-method"), lateMethod = byId("method");
+    const step = byId("step"), play = byId("play");
+    const handoff = 14, end = Number(step.max);
+    const colors = { sft: "var(--teal)", opd: "var(--rust)" };
+    const initial = [65, 147], routes = [[272, 145], [345, 58]], sigma = [21, 16];
+    const midpoint = routes[0].map((a, k) => (a + routes[1][k]) / 2);
+    const mix = (a, b, t) => a.map((v, k) => v + (b[k] - v) * t);
+    const translate = ([x, y]) => "translate(" + x + " " + y + ")";
+
+    // All method combinations share the same normal draws at each step.
+    let seed = 20260726;
+    function uniform() {
+      seed = (Math.imul(1664525, seed) + 1013904223) >>> 0;
+      return (seed + 0.5) / 4294967296;
+    }
+    const batches = Array.from({length: end + 1}, () => {
+      const offsets = [];
+      for (let i = 0; i < 12; i++) {
+        const r = Math.sqrt(-2 * Math.log(uniform())), angle = 2 * Math.PI * uniform();
+        const u = r * Math.cos(angle), v = r * Math.sin(angle);
+        offsets.push([u, v], [-u, -v]);
+      }
+      return offsets;
+    });
+    const gateX = 165, openRadius = 3, verifyRadius = 2;
+    // Standard normal CDF (A&S 26.2.17). The whole half-plane below the gate
+    // is observed as one action, so its likelihood is its integrated mass.
+    function directMass(meanX) {
+      const z = (gateX - meanX) / sigma[0], t = 1 / (1 + 0.2316419 * Math.abs(z));
+      const poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+      const tail = Math.exp(-0.5 * z * z) * poly / Math.sqrt(2 * Math.PI);
+      return z < 0 ? tail : 1 - tail;
+    }
+    const teacherDirect = (directMass(routes[0][0]) + directMass(routes[1][0])) / 2;
+    function batch(mean, offsets) {
+      const directScore = Math.log(teacherDirect / directMass(mean[0]));
+      return offsets.map(([u, v]) => {
+        const x = mean[0] + u * sigma[0], y = mean[1] + v * sigma[1];
+        const [a, b] = routes.map(([cx, cy]) => -0.5 * (((x - cx) / sigma[0]) ** 2 + ((y - cy) / sigma[1]) ** 2));
+        const high = Math.max(a, b);
+        const distanceSquared = -2 * high;
+        const searched = x >= gateX;
+        const verified = searched && distanceSquared <= verifyRadius ** 2;
+        const signal = searched
+          ? high + Math.log((Math.exp(a - high) + Math.exp(b - high)) / 2) + (u * u + v * v) / 2
+          : directScore;
+        return { x, y, offset: [u, v], signal, distanceSquared, searched, verified };
+      });
+    }
+    function averageSignal(points) {
+      const first = points[0].signal;
+      return first + points.reduce((sum, p) => sum + (p.signal - first), 0) / points.length;
+    }
+    function trajectory(first, second, steps = end) {
+      const means = [initial];
+      for (let t = 0; t < steps; t++) {
+        const mean = means[t];
+        const mode = t < handoff ? first : second;
+        if (mode === "sft") {
+          // Fixed covariance: the forward-KL mean update points to the demo mean.
+          means.push(mix(mean, midpoint, 0.15));
+          continue;
+        }
+        const points = batch(mean, batches[t]), baseline = averageSignal(points);
+        // Score-function update in standardized coordinates, using the displayed batch.
+        means.push(mean.map((m, k) => m + 0.16 * sigma[k] * points.reduce(
+          (sum, p) => sum + p.offset[k] * (p.signal - baseline), 0) / points.length));
+      }
+      return means;
+    }
+    for (const mode of ["sft", "opd"]) {
+      const mean = trajectory(mode, mode, handoff)[handoff];
+      const probe = batch(mean, batches[handoff]);
+      const count = probe.filter(p => p.verified).length;
+      const score = byId("score-" + mode);
+      score.value = count + "/" + probe.length;
+      score.parentElement.style.setProperty("--fraction", (100 * count / probe.length) + "%");
+    }
+    document.querySelector(".benchmark").hidden = false;
+    const dots = batches[0].map(() => byId("samples").appendChild(document.createElementNS(map.namespaceURI, "circle")));
+    const pulls = byId("pulls").children;
+    const studentCells = byId("student-reach").querySelectorAll("td");
+    function drawCoverage(points, mode) {
+      const counts = [points.filter(p => p.searched).length,
+        points.filter(p => p.searched && p.distanceSquared <= openRadius ** 2).length,
+        points.filter(p => p.verified).length];
+      counts.forEach((n, i) => {
+        const percent = Math.round(100 * n / points.length) + "%";
+        const cell = studentCells[i + 1];
+        if (cell.textContent !== percent) {
+          cell.textContent = percent;
+          cell.style.setProperty("--reach", percent);
+        }
+      });
+      byId("teacher-reach").classList.toggle("training", mode === "sft");
+      byId("student-reach").classList.toggle("training", mode !== "sft");
+      byId("feedback-mode").textContent = mode.toUpperCase();
+      const [searched, opened, verified] = counts;
+      let message;
+      if (mode === "sft") {
+        message = verified ? "两条路径的示范都包含检验结果这一步。" : "学生尚未检验结果，示范已覆盖这一步。";
+      } else if (verified) {
+        message = "学生已开始检验结果，教师可以在这里纠错。";
+      } else if (opened || searched) {
+        message = "教师能评价已走过的步骤，学生尚未检验结果。";
+      } else {
+        message = "全批都直接作答，教师评分相同，峰心不动。";
+      }
+      byId("feedback").textContent = message;
+    }
+    const path = points => "M" + points.map(p => p.join(" ")).join("L");
+    const show = (id, visible) => byId(id).setAttribute("display", visible ? "inline" : "none");
+    let means = trajectory(coldMethod.value, lateMethod.value), time = 0, frame = 0;
+    function draw(t) {
+      time = t;
+      const k = Math.floor(t), phaseTwo = t >= handoff;
+      const mode = phaseTwo ? lateMethod.value : coldMethod.value, fixed = mode === "sft";
+      const mean = mix(means[k], means[Math.min(k + 1, end)], t - k);
+      student.setAttribute("transform", translate(mean));
+      document.documentElement.style.setProperty("--accent", colors[mode]);
+      byId("cold").setAttribute("aria-current", phaseTwo ? "false" : "step");
+      byId("handoff").setAttribute("aria-current", phaseTwo ? "step" : "false");
+      const coldPoints = means.slice(0, Math.min(k, handoff) + 1);
+      if (!phaseTwo) coldPoints.push(mean);
+      byId("cold-trail").setAttribute("d", path(coldPoints));
+      byId("cold-trail").setAttribute("stroke", colors[coldMethod.value]);
+      byId("late-trail").setAttribute("d", phaseTwo ? path([...means.slice(handoff, k + 1), mean]) : "");
+      byId("late-trail").setAttribute("stroke", colors[lateMethod.value]);
+      byId("fork").setAttribute("transform", translate(means[handoff]));
+      show("fork", phaseTwo);
+      show("pulls", fixed); show("demonstrations", fixed); show("samples", !fixed);
+      const points = batch(mean, batches[k]);
+      drawCoverage(points, mode);
+      if (fixed) {
+        byId("sample-label").textContent = "教师示范";
+        routes.forEach((target, i) => pulls[i].setAttribute("d", path([mean, mix(mean, target, 0.83)])));
+      } else {
+        const baseline = averageSignal(points);
+        byId("sample-label").textContent = points.some(p => p.signal > baseline) ? "学生采样 · 教师偏好亮点" : "学生采样 · 教师评分相同";
+        points.forEach(({x, y, signal}, i) => {
+          const favored = signal > baseline;
+          dots[i].setAttribute("cx", x); dots[i].setAttribute("cy", y);
+          dots[i].setAttribute("r", favored ? 2.5 : 1.8);
+          dots[i].classList.toggle("favored", favored);
+        });
+      }
+      const ahead = means[Math.min(k + 4, phaseTwo ? end : handoff)];
+      show("next-move", !fixed && Math.hypot(ahead[0] - mean[0], ahead[1] - mean[1]) > 5);
+      byId("next-move").setAttribute("d", path([mean, ahead]));
+      byId("sample-key").style.color = colors[mode];
+      step.value = k;
+      step.setAttribute("aria-valuetext", (phaseTwo ? "后续 " : "冷启动 ") + mode.toUpperCase() + "，第 " + k + " 步");
+      byId("count").value = k + " / " + end;
+      play.textContent = frame ? "暂停" : t === end ? "重播" : "播放";
+    }
+    function seek(t) { cancelAnimationFrame(frame); frame = 0; draw(t); }
+    byId("cold").addEventListener("click", () => seek(0));
+    byId("handoff").addEventListener("click", () => seek(handoff));
+    function changeMethods() {
+      means = trajectory(coldMethod.value, lateMethod.value);
+      seek(time);
+    }
+    coldMethod.addEventListener("change", changeMethods);
+    lateMethod.addEventListener("change", changeMethods);
+    step.addEventListener("input", () => seek(Number(step.value)));
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    play.addEventListener("click", () => {
+      if (frame) { seek(time); return; }
+      const from = time === end ? 0 : time, start = performance.now();
+      function tick(now) {
+        const t = Math.min(end, from + Math.max(0, now - start) / 240);
+        frame = t < end ? requestAnimationFrame(tick) : 0;
+        draw(reduced.matches ? Math.floor(t) : t);
+      }
+      frame = requestAnimationFrame(tick);
+      draw(from);
+    });
+    const narrow = matchMedia("(max-width: 530px)");
+    function layout() {
+      const small = narrow.matches, w = small ? 360 : 660, h = small ? 451 : 586;
+      document.documentElement.setAttribute("viewBox", "0 0 " + w + " " + h);
+      if (window.frameElement?.tagName === "OBJECT") window.frameElement.style.aspectRatio = w + " / " + h;
+      byId("header").setAttribute("width", w - 28);
+      map.setAttribute("width", w - 24); map.setAttribute("height", small ? 152 : 286);
+      for (const id of ["legend-box", "benchmark-box", "coverage-box", "toolbar"]) byId(id).setAttribute("width", w - 32);
+      byId("legend-box").setAttribute("y", small ? 205 : 340);
+      byId("benchmark-box").setAttribute("y", small ? 235 : 369);
+      byId("coverage-box").setAttribute("y", small ? 286 : 420);
+      byId("toolbar").setAttribute("y", small ? 407 : 541);
+    }
+    narrow.addEventListener("change", layout);
+    layout(); draw(0);
+    document.querySelector(".controls").hidden = false;
+  ]]></script>
+</svg>

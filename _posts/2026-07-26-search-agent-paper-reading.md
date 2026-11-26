@@ -41,6 +41,7 @@ giscus_comments: false
     - [3 self attribution](#3-self-attribution)
   - [Why OPD use reverse KL ?](#why-opd-use-reverse-kl-)
     - [SFT 的 M 投影与 OPD 的 I 投影](#sft-opd-projections)
+      - [从冷启动到后续训练，谁在拉动学生的峰？](#sft-cold-start)
 
 ## Anthropic Agent building 基础
 
@@ -623,19 +624,45 @@ $$
 
 <h4 id="sft-opd-projections">SFT 的 M 投影与 OPD 的 I 投影</h4>
 
-假设 Search Agent 可以从两个地方找到证据。查论文正文，就核对原文引句。查实验表格，就核对表中数值。在演示的目标分布 $P$ 里，这两条完整路线各占 **49%**，另外两种交叉搭配各占 **1%**。为了单独看清 KL 方向的影响，我们让 SFT 的示范与 OPD 的教师服从同一个 $P$。
+教师的两个等权峰代表同一问题的两种有效解法，分别记为解题路径 A 和解题路径 B。学生只能移动一个固定宽度的窄峰。灰带里的答案像把两份记录的「4 张显卡」和「8 张显卡」折中成了缺少依据的「6 张」。[参考图](https://nrehiew.github.io/blog/sft_rl_opd/)
 
-假设学生 $Q$ **到了第二步就记不住第一步查了什么**。它以概率 $p$ 查正文，又独立地以同一个 $p$ 选择核对引句。因此，完整走通正文路线的概率是 $p^2$，走通表格路线的是 $(1-p)^2$，两种交叉搭配合计 $2p(1-p)$。点「重播」看两种投影从同一起点出发，再切换「学生初始偏好」，看看哪条路线会留下。
-
-<object type="image/svg+xml" data="{{ '/assets/img/search-agent-kl-projections.svg' | relative_url }}" aria-label="SFT 与反向 KL OPD 对三类搜索轨迹的拟合动画" style="display: block; width: 100%; max-width: 36rem; height: auto; aspect-ratio: 480 / 436; margin: 1rem auto;">
+<object type="image/svg+xml" data="{{ '/assets/img/search-agent-kl-projections.svg' | relative_url }}" aria-label="二维双峰等高线动画，对比 SFT 的 M 投影与反向 KL OPD 的 I 投影" style="display: block; width: 100%; max-width: 46rem; height: auto; aspect-ratio: 696 / 378; margin: 1rem auto;">
   <a href="{{ '/assets/img/search-agent-kl-projections.svg' | relative_url }}">打开交互演示</a>
 </object>
 
-**SFT 的 M 投影（覆盖模式）。** 在固定示范上做最大似然，等价于最小化前向 KL $D_{\mathrm{KL}}(P\Vert Q)$。损失由示范分布 $P$ 加权，漏掉任何一条占 49% 的路线，都会让一大批示范在学生那里概率很低。这个学生的最优折中是 $p=0.5$，两条好路线各占 25%，但交叉搭配也占了 **50%**。
+<details markdown="1">
+<summary>用搜索路线看覆盖与取舍</summary>
 
-**反向 KL 的 OPD 是 I 投影（寻找模式）。** 最小化 $D_{\mathrm{KL}}(Q\Vert P)$ 时，由学生分布 $Q$ 加权。学生经常走出教师很少采用的交叉路线，便会反复收到负信号。在这个例子里，偏向正文的学生最终把约 **95%** 的概率集中在正文路线，交叉搭配降到约 **4.7%**，但同样有效的表格路线也只剩约 **0.1%**。切换初始偏好，结果正好对调。
+在这个搜索例子里，路径 A 查正文，路径 B 查表格。学生分两步选择证据来源和核对方式，两步独立且共用同一个偏好。假设学生起初偏向路径 A。
 
-- **冷启动、需要学齐多种工具时用 SFT。** 可以离线整理多条示范，教学生从正文和表格取证。局限是示范只覆盖其中出现的前缀。学生自己走偏后，很少能从这批数据里学到怎么补救。
-- **已有可用策略、需要纠正实际失误时用 OPD。** 例如学生已经查了表格，却仍准备去核对原文引句，教师可以就在这个前缀上给它反馈。代价是训练时要在线生成轨迹，还要调用教师打分。如果任务要求同时找齐多种证据，集中到单一路线也会损失召回。
+| 搜索路线           | 教师 | SFT · M 投影 | OPD · I 投影 |
+| ------------------ | ---: | -----------: | -----------: |
+| 查正文 → 核对引句  |  49% |          25% |        95.3% |
+| 查表格 → 核对数值  |  49% |          25% |         0.1% |
+| 来源和核对方式错配 |   2% |          50% |         4.7% |
 
-这里把学生刻意设弱了。如果它能表示目标分布中第二步对第一步的依赖，就能达到 $Q=P$，两个方向的 KL 都可以降到零。另外，on-policy 只规定**由学生生成训练前缀**，在这些前缀上也可以用前向 KL 等其他损失。图中讨论的是采用反向 KL 的那一种 OPD。[原文的分布视角](https://nrehiew.github.io/blog/sft_rl_opd/) · [Agarwal 等的 on-policy 蒸馏研究](https://arxiv.org/abs/2306.13649)
+SFT 能从示范学到两条路线，也容易拼错步骤。反向 KL 的 OPD 可以纠正学生实际走过的路线，另一条有效路线却很少再被采到。若学生能表示完整的目标分布，两种 KL 都能降到零。[On-policy 蒸馏研究](https://arxiv.org/abs/2306.13649)
+
+</details>
+
+<h5 id="sft-cold-start">从冷启动到后续训练，谁在拉动学生的峰？</h5>
+
+学生模型只能移动一个窄峰，起初约每百万次作答才尝试一次分步解题。点「后续训练」跳到第 14 步，再切换左侧的冷启动方法，比较有多少学生样本已经走到「检验结果」这一步。
+
+<object type="image/svg+xml" data="{{ '/assets/img/search-agent-cold-start.svg' | relative_url }}" aria-label="双峰代表解题路径 A 和 B，对比 SFT 和 OPD 冷启动后有多少学生样本走到检验结果，可切换四种训练搭配" style="display: block; width: 100%; max-width: 46rem; height: auto; aspect-ratio: 660 / 586; margin: 1rem auto;">
+  <a href="{{ '/assets/img/search-agent-cold-start.svg' | relative_url }}">打开分布牵引动画</a>
+</object>
+
+<details markdown="1">
+<summary>对照四种搭配在第 38 步的峰心位置</summary>
+
+| 冷启动 ↓ / 后续 → | SFT      | OPD           |
+| ----------------- | -------- | ------------- |
+| SFT               | 峰间谷地 | 路径 A 峰附近 |
+| OPD               | 峰间谷地 | 起点          |
+
+门槛左侧的点都输出同一个动作「直接作答」。这里的 OPD 只给采到的动作打分。如果整批都直接作答，这个动作即使被教师打了低分，扣除批均值后各样本的更新信号仍是零。SFT 从第一步就拿到两条完整示范，能把学生峰拉过分步解题的门槛。两条路径等权，持续 SFT 会把峰心拉向两峰之间的谷地。
+
+每步换一批 24 个学生样本，同一步的两种方法共用随机抽样偏移。这个示例用点到最近教师峰的距离表示解题进度。越过门槛后，以标准差为单位，距离在 3 以内表示展开推导，在 2 以内表示开始检验结果。最外圈虚线标出检验范围。这个结果取决于有限的采样预算和仅评价已采动作的设定，学生仍有学会单条路径的容量。[原文的分布视角](https://nrehiew.github.io/blog/sft_rl_opd/)
+
+</details>

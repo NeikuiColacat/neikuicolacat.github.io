@@ -1,170 +1,222 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 436" lang="zh-CN" role="group" aria-labelledby="title desc">
-  <title id="title">同一个搜索学生，两个 KL 投影</title>
-  <desc id="desc">每一行是一类搜索轨迹。虚线是目标概率，M 和 I 两根色条表示同一个学生分别按两个方向的 KL 拟合后的概率。可播放、拖动步数或切换初始偏好。</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 696 378" lang="zh-CN" role="group" aria-labelledby="title desc">
+  <title id="title">用一个固定宽度的窄峰拟合双峰分布</title>
+  <desc id="desc">A 和 B 是两个等权教师峰。两个学生从同一点出发，都只能移动一个窄峰。SFT 将峰心移向中间的教师低密度区，反向 KL 将峰心移向起点附近的教师峰。图下数字是学生落入灰带的概率。可以重播、拖动步数或切换起点。</desc>
   <style>
     :root {
       color-scheme: light dark;
-      --paper: #fbfaf6; --ink: #222d32; --muted: #515e62; --track: #e5e7e1;
-      --m: #117468; --i: #ae471c;
-      font: 16px system-ui, sans-serif;
-      color: var(--ink);
+      --paper: #fbfaf7; --plot: #fffefa; --ink: #242c2e; --muted: #515b60;
+      --line: #c7cdca; --grid: #e2e6e3; --valley: #637984; --teacher: #565e69;
+      --m: #087465; --i: #ac4923;
+      font: 15px system-ui, sans-serif; color: var(--ink);
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --paper: #202829; --ink: #f4f3e9; --muted: #c2cdca; --track: #354244;
-        --m: #65d6bf; --i: #ffa777;
+        --paper: #202626; --plot: #232a2a; --ink: #f5f1e7; --muted: #c3ccca;
+        --line: #54615f; --grid: #384443; --valley: #aac0ce; --teacher: #c3c9d2;
+        --m: #61d9bb; --i: #ffad82;
       }
     }
     text { fill: var(--ink); }
-    .heading { font-size: 23px; font-weight: 700; }
-    .route { font-size: 17px; font-weight: 650; }
-    .target, .value { text-anchor: end; font-variant-numeric: tabular-nums; }
-    .target { fill: var(--muted); font-size: 15px; }
-    .mark { stroke: var(--ink); stroke-width: 1.6; stroke-dasharray: 3 2; }
-    .m { fill: var(--m); }
-    .i { fill: var(--i); }
-    .bar { transition: width 150ms linear; }
-    @media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
-    .controls { display: grid; gap: 6px; }
+    .heading { font: 650 23px Georgia, "Noto Serif CJK SC", serif; }
+    .panel-title { font-size: 18px; font-weight: 670; fill: currentColor; }
+    .math { fill: var(--muted); font: italic 15px Georgia, serif; text-anchor: end; }
+    .legend, .stat { font-size: 14px; }
+    .tick { font: 12px system-ui, sans-serif; fill: var(--muted); }
+    .peak { font: italic bold 16px Georgia, serif; fill: var(--ink); paint-order: stroke; stroke: var(--plot); stroke-width: 3px; }
+    .value { text-anchor: end; fill: currentColor; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .teacher-line { fill: none; stroke: var(--teacher); stroke-width: 1.2; stroke-dasharray: 3 2.5; }
+    .ring { fill: currentColor; stroke: currentColor; stroke-width: 1.6; fill-opacity: .055; }
+    .controls { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px 20px; }
     .controls[hidden] { display: none; }
-    .controls div, .controls label { display: flex; align-items: center; gap: 10px; }
-    .controls button, .controls select {
-      font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--muted);
-      border-radius: 6px; min-height: 34px; padding: 2px 9px; cursor: pointer;
+    .controls label { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    button, select { color: var(--ink); background: var(--plot); border: 1px solid var(--line); border-radius: 5px; font: inherit; min-height: 32px; padding: 2px 8px; cursor: pointer; }
+    button { color: var(--paper); background: var(--ink); border-color: var(--ink); min-width: 62px; }
+    input { flex: 1; min-width: 0; width: 60px; height: 26px; accent-color: var(--m); cursor: pointer; }
+    output { min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+    @media (max-width: 530px) {
+      .controls { grid-template-columns: 1fr auto; gap: 4px 10px; }
+      .timeline { grid-column: 1 / -1; grid-row: 2; }
     }
-    .controls button { margin-left: auto; min-width: 86px; background: var(--ink); color: var(--paper); }
-    input[type="range"] { flex: 1; min-width: 0; height: 28px; accent-color: var(--m); cursor: pointer; }
-    output { min-width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
   </style>
   <defs>
-    <g id="lanes">
-      <text class="m" x="22" y="35">M</text>
-      <text class="i" x="25" y="57">I</text>
-      <rect x="50" y="25" width="330" height="9" fill="var(--track)"/>
-      <rect x="50" y="47" width="330" height="9" fill="var(--track)"/>
+    <radialGradient id="hill">
+      <stop stop-color="var(--teacher)" stop-opacity=".32"/>
+      <stop offset=".45" stop-color="var(--teacher)" stop-opacity=".17"/>
+      <stop offset="1" stop-color="var(--teacher)" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="window"><rect x="24" y="36" width="294" height="172" rx="3"/></clipPath>
+    <g id="plot-base">
+      <rect x="24" y="36" width="294" height="172" rx="3" fill="var(--plot)" stroke="var(--line)"/>
+      <g clip-path="url(#window)">
+        <path d="M0 0H1.6V12H0Z" transform="translate(171 122) rotate(-27) scale(28) translate(-.8 -6)" fill="var(--valley)" opacity=".13"/>
+        <path d="M59 36v172 M115 36v172 M227 36v172 M283 36v172 M24 66h294 M24 178h294" fill="none" stroke="var(--grid)" stroke-dasharray="2 4"/>
+        <path d="M171 36v172 M24 122h294" stroke="var(--line)" stroke-width=".9"/>
+        <g transform="translate(171 122) rotate(-27) scale(28)" fill="url(#hill)">
+          <circle cx="-2.2" r="1.75"/><circle cx="2.2" r="1.75"/>
+        </g>
+      </g>
+      <g class="tick" text-anchor="middle">
+        <text class="tick" x="59" y="223">−4</text><text class="tick" x="171" y="223">0</text><text class="tick" x="283" y="223">4</text>
+      </g>
+      <text class="tick" x="9" y="70">2</text><text class="tick" x="4" y="182">−2</text>
+      <text class="tick" x="304" y="223">x₁</text><text class="tick" x="6" y="45">x₂</text>
+    </g>
+    <!-- All peaks have standard deviation 0.62; these contours are at 2, 1.25 and 0.65 standard deviations. -->
+    <g id="contours">
+      <circle r="1.24" vector-effect="non-scaling-stroke"/>
+      <circle r=".775" vector-effect="non-scaling-stroke"/>
+      <circle r=".403" vector-effect="non-scaling-stroke"/>
+    </g>
+    <g id="targets" class="teacher-line" transform="translate(171 122) rotate(-27) scale(28)">
+      <use href="#contours" x="-2.2"/><use href="#contours" x="2.2"/>
+    </g>
+    <g id="peak-names"><text class="peak" x="78" y="183">A</text><text class="peak" x="255" y="70">B</text></g>
+    <g id="student">
+      <use href="#contours" class="ring"/>
+      <circle r=".105" fill="currentColor"/>
     </g>
   </defs>
-  <rect x=".5" y=".5" width="479" height="435" rx="14" fill="var(--paper)" stroke="var(--track)"/>
-  <text class="heading" x="22" y="36">学生会走哪条搜索路线？</text>
-  <g transform="translate(22 62)">
-    <circle cy="-5" r="5" cx="5" class="m"/>
-    <text x="18">SFT · M 投影</text>
-    <circle cy="-5" r="5" cx="157" class="i"/>
-    <text x="170">OPD · I 投影</text>
-    <path d="M310,-16 v19" class="mark"/>
-    <text x="320">目标 P</text>
+
+  <rect width="100%" height="100%" rx="10" fill="var(--paper)"/>
+  <text class="heading" x="18" y="32">一个窄峰会学到哪里？</text>
+  <g class="legend" transform="translate(18 56)">
+    <path class="teacher-line" d="M0 -4h19"/><text x="24">目标峰 P</text>
+    <path stroke="var(--ink)" stroke-width="2" d="M102 -4h18"/><circle cx="111" cy="-4" r="2.7" fill="var(--ink)"/><text x="126">学生 Q</text>
+    <rect x="198" y="-13" width="13" height="13" fill="var(--valley)" opacity=".28"/><text x="217">谷地 · 幻觉类比</text>
   </g>
 
-  <g class="trajectory" transform="translate(0 86)">
-    <text class="route" x="22" y="12">查正文 → 核对引句</text>
-    <text class="target" x="458" y="12">目标 49%</text>
-    <use href="#lanes"/>
-    <rect class="bar m" x="50" y="25" height="9" width="82.5"/>
-    <rect class="bar i" x="50" y="47" height="9" width="314.32"/>
-    <path d="M211.7,21 v39" class="mark"/>
-    <text class="value m" x="458" y="35">25.0%</text>
-    <text class="value i" x="458" y="57">95.3%</text>
+  <g id="m-panel" transform="translate(12 70)" style="color:var(--m)" role="group" aria-label="SFT 的 M 投影">
+    <text class="panel-title" x="8" y="24">SFT · M 投影</text><text class="math" x="318" y="24">KL(P ‖ Q)</text>
+    <use href="#plot-base"/>
+    <g clip-path="url(#window)">
+      <g transform="translate(171 122) rotate(-27) scale(28)">
+        <use class="fit" href="#student" x="-.00708"/>
+      </g>
+      <use href="#targets"/><use href="#peak-names"/>
+    </g>
+    <text class="stat" x="24" y="246">学生落入谷地的概率</text><text class="value" x="318" y="246">80.3%</text>
   </g>
-  <g class="trajectory" transform="translate(0 171)">
-    <text class="route" x="22" y="12">交叉搭配（两种合计）</text>
-    <text class="target" x="458" y="12">目标 2%</text>
-    <use href="#lanes"/>
-    <rect class="bar m" x="50" y="25" height="9" width="165"/>
-    <rect class="bar i" x="50" y="47" height="9" width="15.49"/>
-    <path d="M56.6,21 v39" class="mark"/>
-    <text class="value m" x="458" y="35">50.0%</text>
-    <text class="value i" x="458" y="57">4.7%</text>
+  <g id="i-panel" transform="translate(354 70)" style="color:var(--i)" role="group" aria-label="反向 KL OPD 的 I 投影">
+    <text class="panel-title" x="8" y="24">OPD · I 投影</text><text class="math" x="318" y="24">KL(Q ‖ P)</text>
+    <use href="#plot-base"/>
+    <g clip-path="url(#window)">
+      <g transform="translate(171 122) rotate(-27) scale(28)">
+        <use class="fit" href="#student" x="-2.19508"/>
+      </g>
+      <use href="#targets"/><use href="#peak-names"/>
+    </g>
+    <text class="stat" x="24" y="246">学生落入谷地的概率</text><text class="value" x="318" y="246">1.2%</text>
   </g>
-  <g class="trajectory" transform="translate(0 256)">
-    <text class="route" x="22" y="12">查表格 → 核对数值</text>
-    <text class="target" x="458" y="12">目标 49%</text>
-    <use href="#lanes"/>
-    <rect class="bar m" x="50" y="25" height="9" width="82.5"/>
-    <rect class="bar i" x="50" y="47" height="9" width=".19"/>
-    <path d="M211.7,21 v39" class="mark"/>
-    <text class="value m" x="458" y="35">25.0%</text>
-    <text class="value i" x="458" y="57">0.1%</text>
-  </g>
-  <path d="M22,333 h436" stroke="var(--track)"/>
-  <foreignObject x="22" y="346" width="436" height="86">
+  <foreignObject id="toolbar" x="18" y="335" width="660" height="39">
     <div xmlns="http://www.w3.org/1999/xhtml" class="controls" hidden="hidden">
-      <div>
-        <label>学生初始偏好
-          <select id="bias">
-            <option value="0.65">偏向正文</option>
-            <option value="0.35">偏向表格</option>
-          </select>
-        </label>
-        <button id="play" type="button">重播</button>
-      </div>
-      <label>拟合步数
+      <label>初始偏好
+        <select id="bias"><option value="-1">靠近 A 峰</option><option value="1">靠近 B 峰</option></select>
+      </label>
+      <label class="timeline">拟合步数
         <input id="step" type="range" min="0" max="24" value="24"/>
         <output id="count" for="step" aria-live="off">24 / 24</output>
       </label>
+      <button id="play" type="button">重播</button>
     </div>
   </foreignObject>
   <script><![CDATA[
+    const svg = document.documentElement;
     const bias = document.getElementById("bias");
     const step = document.getElementById("step");
+    const count = document.getElementById("count");
     const play = document.getElementById("play");
-    const rows = Array.from(document.querySelectorAll(".trajectory"));
     const maxStep = Number(step.max);
-    const trackWidth = document.querySelector("#lanes rect").width.baseVal.value;
-    let timer;
+    const peak = 2.2, sigma = 0.62, variance = sigma ** 2;
+    const grid = Array.from({length: 121}, (_, i) => (i - 60) / 10);
+    const weights = grid.map(z => Math.exp(-z * z / 2));
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
 
-    // The student independently chooses the text branch at both steps with probability p.
-    // Mirror descent updates its log odds using d(KL)/dp, with the same step size for both objectives.
-    function fit(initial, steps, reverse) {
-      let logOdds = Math.log(initial / (1 - initial));
-      for (let t = 0; t < steps; t++) {
-        const p = 1 / (1 + Math.exp(-logOdds));
-        const gradient = reverse
-          ? 2 * (logOdds + (1 - 2 * p) * Math.log(0.49 / 0.01))
-          : (2 * p - 1) / (p * (1 - p));
-        logOdds -= 0.2 * gradient;
+    // Along the line joining the peaks, forward KL pulls toward E_P[u] = 0.
+    // Reverse KL pulls toward the component centers weighted by their posterior under Q.
+    // The perpendicular marginal is identical, so it drops out of both gradients.
+    function fit(reverse) {
+      let mean = 1.5;
+      const means = [mean];
+      for (let t = 0; t < maxStep; t++) {
+        let targetMean = 0;
+        if (reverse) {
+          for (let i = 0; i < grid.length; i++) {
+            const u = mean + sigma * grid[i];
+            targetMean += weights[i] / totalWeight * peak * Math.tanh(peak * u / variance);
+          }
+        }
+        mean += 0.2 * (targetMean - mean);
+        means.push(mean);
       }
-      const p = 1 / (1 + Math.exp(-logOdds));
-      return [p * p, 2 * p * (1 - p), (1 - p) ** 2];
-    }
-
-    function draw() {
-      const t = Number(step.value);
-      for (const method of ["m", "i"]) {
-        const probabilities = fit(Number(bias.value), t, method === "i");
-        rows.forEach((row, index) => {
-          const probability = probabilities[index];
-          row.querySelector(".bar." + method).setAttribute("width", trackWidth * probability);
-          row.querySelector(".value." + method).textContent = (100 * probability).toFixed(1) + "%";
-        });
-      }
-      document.getElementById("count").value = t + " / " + maxStep;
-      play.textContent = timer ? "暂停" : t === maxStep ? "重播" : "播放";
+      return means;
     }
 
-    function pause() {
-      clearInterval(timer);
-      timer = undefined;
-    }
-    function scrub() {
-      pause();
-      draw();
-    }
-    step.addEventListener("input", scrub);
-    bias.addEventListener("change", scrub);
-    play.addEventListener("click", () => {
-      if (timer) {
-        scrub();
-        return;
+    // Integrate Q over the shaded strip |u| < 0.8 (midpoint rule).
+    function valleyMass(mean) {
+      const dx = 1.6 / 64;
+      let sum = 0;
+      for (let i = 0; i < 64; i++) {
+        const z = (-0.8 + (i + 0.5) * dx - mean) / sigma;
+        sum += Math.exp(-z * z / 2);
       }
-      if (Number(step.value) === maxStep) step.value = 0;
-      timer = setInterval(() => {
-        step.stepUp();
-        if (Number(step.value) === maxStep) pause();
-        draw();
-      }, 210);
-      draw();
+      return dx * sum / (sigma * Math.sqrt(2 * Math.PI));
+    }
+
+    const panels = ["m", "i"].map(id => {
+      const panel = document.getElementById(id + "-panel");
+      return { means: fit(id === "i"), shape: panel.querySelector(".fit"), value: panel.querySelector(".value") };
     });
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    let progress = maxStep, frame = 0;
+    function draw(time) {
+      progress = time;
+      const t = Math.floor(time), next = Math.min(t + 1, maxStep);
+      const blend = reducedMotion.matches ? 0 : time - t;
+      for (const {means, shape, value} of panels) {
+        const mean = Number(bias.value) * (means[t] + blend * (means[next] - means[t]));
+        shape.setAttribute("x", mean);
+        value.textContent = (100 * valleyMass(mean)).toFixed(1) + "%";
+      }
+      step.value = t;
+      count.value = t + " / " + maxStep;
+      play.textContent = frame ? "暂停" : time === maxStep ? "重播" : "播放";
+    }
+    function stop() {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+    step.addEventListener("input", () => { stop(); draw(Number(step.value)); });
+    bias.addEventListener("change", () => { stop(); draw(progress); });
+    play.addEventListener("click", () => {
+      if (frame) { stop(); draw(progress); return; }
+      const start = progress === maxStep ? 0 : progress;
+      const startedAt = performance.now();
+      function tick(now) {
+        const time = Math.min(maxStep, start + Math.max(0, now - startedAt) / 220);
+        frame = time < maxStep ? requestAnimationFrame(tick) : 0;
+        draw(time);
+      }
+      frame = requestAnimationFrame(tick);
+      draw(start);
+    });
+
+    const narrow = matchMedia("(max-width: 530px)");
+    function layout() {
+      const small = narrow.matches;
+      svg.setAttribute("viewBox", small ? "0 0 344 668" : "0 0 696 378");
+      document.getElementById("m-panel").setAttribute("transform", small ? "translate(6 67)" : "translate(12 70)");
+      document.getElementById("i-panel").setAttribute("transform", small ? "translate(6 326)" : "translate(354 70)");
+      const toolbar = document.getElementById("toolbar");
+      toolbar.setAttribute("width", small ? 308 : 660);
+      toolbar.setAttribute("height", small ? 78 : 39);
+      toolbar.setAttribute("y", small ? 586 : 335);
+      if (window.frameElement?.tagName === "OBJECT") {
+        window.frameElement.style.aspectRatio = small ? "344 / 668" : "696 / 378";
+      }
+    }
+    narrow.addEventListener("change", layout);
+    layout();
     document.querySelector(".controls").hidden = false;
-    draw();
+    draw(progress);
   ]]></script>
 </svg>
