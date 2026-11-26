@@ -34,7 +34,13 @@ giscus_comments: false
   - [强化学习 bg review](#强化学习-bg-review)
     - [为什么要给 policy 套一层 log？](#为什么要给-policy-套一层-log)
 - [Data pipeline](#data-pipeline)
-  - [A Survey for LLM Agent Trajectory Analysis:  From Failure Attribution to Enhancement](#a-survey-for-llm-agent-trajectory-analysis--from-failure-attribution-to-enhancement)
+  - [A Survey for LLM Agent Trajectory Analysis: From Failure Attribution to Enhancement](#a-survey-for-llm-agent-trajectory-analysis--from-failure-attribution-to-enhancement)
+  - [AgentEvolver: Towards Efficient Self-Evolving Agent System](#agentevolver-towards-efficient-self-evolving-agent-system)
+    - [1 self questioning](#1-self-questioning)
+    - [2 self naviagtion](#2-self-naviagtion)
+    - [3 self attribution](#3-self-attribution)
+  - [Why OPD use reverse KL ?](#why-opd-use-reverse-kl-)
+    - [SFT 的 M 投影与 OPD 的 I 投影](#sft-opd-projections)
 
 ## Anthropic Agent building 基础
 
@@ -391,30 +397,29 @@ $$
 L_{\mathrm{PPO}}(\theta) = -\frac{1}{B}\sum_{b=1}^{B}\min\left(\rho_b(\theta)\hat{A}_b,\operatorname{clip}(\rho_b(\theta),1-\epsilon,1+\epsilon)\hat{A}_b\right)
 $$
 
+## Data pipeline
 
-## Data pipeline 
+| Stage                          | 你要理解的问题                          | 阅读深度 | 我建议怎么读                                                       |
+| ------------------------------ | --------------------------------------- | -------: | ------------------------------------------------------------------ |
+| 1. Trajectory Collection       | Agent 应该记录哪些 trace？              |       ★★ | 看综述即可，重点理解 schema / observability                        |
+| 2. Evaluation / Verifier       | 怎么知道 trajectory 成功还是失败？      |       ★★ | 结合你已有 RL 知识看 verifier，不必单独深挖                        |
+| 3. Failure Attribution         | **到底哪一步导致失败？**                |    ★★★★★ | 当前第一重点：Survey → AgentRx → STRACE                            |
+| 4. Capability Gap Mining       | **大量 failure 背后缺什么能力？**       |    ★★★★★ | 当前第二重点；从 failure pattern / clustering / RCA 文献自己拼起来 |
+| 5. Data Curation               | **哪些经验值得用于训练？**              |    ★★★★★ | Beyond Scaling → CurateEvo                                         |
+| 6. Data / Hard-case Generation | **缺的数据怎么制造？**                  |     ★★★★ | hard-example / adversarial environment / self-play                 |
+| 7. Curriculum / Sampling       | **现在最应该训练什么？**                |     ★★★★ | Self-Evolving Curriculum + adversarial curriculum                  |
+| 8. Learning / Consolidation    | 数据最后进 weights、memory 还是 skill？ |      ★★★ | 你已经懂 SFT/RL，重点补 experience→memory/skill                    |
 
-| Stage                          | 你要理解的问题                        |  阅读深度 | 我建议怎么读                                              |
-| ------------------------------ | ------------------------------ | ----: | --------------------------------------------------- |
-| 1. Trajectory Collection       | Agent 应该记录哪些 trace？            |    ★★ | 看综述即可，重点理解 schema / observability                   |
-| 2. Evaluation / Verifier       | 怎么知道 trajectory 成功还是失败？        |    ★★ | 结合你已有 RL 知识看 verifier，不必单独深挖                        |
-| 3. Failure Attribution         | **到底哪一步导致失败？**                 | ★★★★★ | 当前第一重点：Survey → AgentRx → STRACE                    |
-| 4. Capability Gap Mining       | **大量 failure 背后缺什么能力？**        | ★★★★★ | 当前第二重点；从 failure pattern / clustering / RCA 文献自己拼起来 |
-| 5. Data Curation               | **哪些经验值得用于训练？**                | ★★★★★ | Beyond Scaling → CurateEvo                          |
-| 6. Data / Hard-case Generation | **缺的数据怎么制造？**                  |  ★★★★ | hard-example / adversarial environment / self-play  |
-| 7. Curriculum / Sampling       | **现在最应该训练什么？**                 |  ★★★★ | Self-Evolving Curriculum + adversarial curriculum   |
-| 8. Learning / Consolidation    | 数据最后进 weights、memory 还是 skill？ |   ★★★ | 你已经懂 SFT/RL，重点补 experience→memory/skill             |
-
-
+<!-- prettier-ignore -->
 ### A Survey for LLM Agent Trajectory Analysis:  From Failure Attribution to Enhancement
 
 ![总体架构图](../assets/img/1789981933775.png)
 
-一个 LLM agent system 由以下几个部分构成 ： 
+一个 LLM agent system 由以下几个部分构成 ：
 
-1. Prompt 
+1. Prompt
 2. Model
-3. Harness  (Memory Tools etc)
+3. Harness (Memory Tools etc)
 
 这些东西 和 **environment** 交互然后生成 **trajectory**
 
@@ -424,11 +429,11 @@ Then we need to do **failure attribution** to find out which step in the traject
 
 ---
 
-OK , now , 作者将整个 harness 分为以下几个模块 
+OK , now , 作者将整个 harness 分为以下几个模块
 
-$g$ , decides which agent to act in the next move , I : $h_t$  , O : $agent_id$
+$g$ , decides which agent to act in the next move , I : $h_t$ , O : $agent_id$
 
-$\phi$ decides what provides the agent to see , I : $h_t$  , O : $x_t$
+$\phi$ decides what provides the agent to see , I : $h_t$ , O : $x_t$
 
 $u$ decides how to update after the agent performs an action , I : $h_t , agent_id , x_t , y_t$ , O : $h_{t+1}$
 
@@ -448,55 +453,54 @@ and such steps form a trajectory $\tau = (s_0, s_1, ..., s_T)$
 
 所以什么样的failure 是重要的呢 ？ author 觉得不可挽回的 failure 是重要的
 
-就是做出这个 action 之后 所有 possible future trajectory 都无法达成最终 success 的状态 ， 这种failure是重要的 
+就是做出这个 action 之后 所有 possible future trajectory 都无法达成最终 success 的状态 ， 这种failure是重要的
 
 ---
 
 作者给出了常见的 failure pattern taxonomy
 
-1. 指令遵循 还有 输出格式 遵循 
+1. 指令遵循 还有 输出格式 遵循
 2. 长程规划 和 问题拆分结构
 3. multi agent coordination
-4. LLM reasoning and knowledge 
+4. LLM reasoning and knowledge
 
-----
+---
 
-So how to localiztion which part failed ? 
+So how to localiztion which part failed ?
 
-| 类别 | 核心思想 | 代表方法/方向 |
-|---|---|---|
-| **1. Pattern Analysis** | 从大量成功/失败 trajectory 中找统计相关模式 | FAMAS、SDBL、CORRECT、AgentEval 等 |
-| **2. LLM Reasoning** | 直接让 LLM 阅读 trajectory，语义推理 root cause | Who&When、ECHO、RAFFLES、CHIEF、A2P、AgentRx 等 |
-| **3. Fine-tuned Tracer Model** | 专门训练一个 failure-attribution 模型 | AgenTracer、GraphTracer、Aegis-Kong 等 |
-| **4. Dynamic Runtime** | 修改怀疑的 step 并重新 rollout，用 counterfactual 验证因果 | DoVer、AgentDebug、TraceElephant、AgentFail 等 |
+| 类别                           | 核心思想                                                   | 代表方法/方向                                   |
+| ------------------------------ | ---------------------------------------------------------- | ----------------------------------------------- |
+| **1. Pattern Analysis**        | 从大量成功/失败 trajectory 中找统计相关模式                | FAMAS、SDBL、CORRECT、AgentEval 等              |
+| **2. LLM Reasoning**           | 直接让 LLM 阅读 trajectory，语义推理 root cause            | Who&When、ECHO、RAFFLES、CHIEF、A2P、AgentRx 等 |
+| **3. Fine-tuned Tracer Model** | 专门训练一个 failure-attribution 模型                      | AgenTracer、GraphTracer、Aegis-Kong 等          |
+| **4. Dynamic Runtime**         | 修改怀疑的 step 并重新 rollout，用 counterfactual 验证因果 | DoVer、AgentDebug、TraceElephant、AgentFail 等  |
 
 ---
 
 So how to modify this system after we find the root cause of the failure ?
 
-| 大类 | 改什么 | 典型做法 | 代表方法 | 适合解决什么 failure |
-|---|---|---|---|---|
-| **1. Structural & Workflow Optimization** | 改 Agent **外部系统结构** | 改 workflow、agent topology、routing、system instruction、environment | **Aegis、Maestro、CE-Graph、ILWS** | routing 错、agent 分工不合理、workflow 设计差、系统结构导致的重复失败 |
-| **2. Agent Internal Optimization** | 改 Agent **自身能力 / policy** | 改 prompt、instruction、policy、模型权重、memory、skill | **SCOPE、AgentDevel、ReCreate、SEAlign、Trajectory-Informed Memory、Trace2Skill** | reasoning、planning、决策、知识、经验不足等内部能力 failure |
-| **3. Runtime & Supervisory Optimization** | **不一定永久改 Agent**，而是在执行时干预 | context filtering、monitor、supervisor、实时纠错、nudge | **AgentDiet、SUPERVISOR AGENT、Wink、Process-Centric Analysis** | context 冗余、Agent 中途跑偏、重复动作、可以在执行过程中及时恢复的 failure |
-
-
---- 
-
-what should we store to debug a trajectory ? 
-
-| 信息 | 作用 |
-|---|---|
-| `step_id` | 这是第几步 |
-| `agent_id / agent_name` | 谁执行了这一步 |
-| `input_context` | 这一步 Agent 看到了什么 |
-| `output / action` | Agent 决定了什么、输出了什么 |
-| `tool_call` | 调了哪个工具、参数是什么 |
-| `tool_result / status` | 工具返回什么，成功还是失败 |
+| 大类                                      | 改什么                                   | 典型做法                                                              | 代表方法                                                                          | 适合解决什么 failure                                                       |
+| ----------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **1. Structural & Workflow Optimization** | 改 Agent **外部系统结构**                | 改 workflow、agent topology、routing、system instruction、environment | **Aegis、Maestro、CE-Graph、ILWS**                                                | routing 错、agent 分工不合理、workflow 设计差、系统结构导致的重复失败      |
+| **2. Agent Internal Optimization**        | 改 Agent **自身能力 / policy**           | 改 prompt、instruction、policy、模型权重、memory、skill               | **SCOPE、AgentDevel、ReCreate、SEAlign、Trajectory-Informed Memory、Trace2Skill** | reasoning、planning、决策、知识、经验不足等内部能力 failure                |
+| **3. Runtime & Supervisory Optimization** | **不一定永久改 Agent**，而是在执行时干预 | context filtering、monitor、supervisor、实时纠错、nudge               | **AgentDiet、SUPERVISOR AGENT、Wink、Process-Centric Analysis**                   | context 冗余、Agent 中途跑偏、重复动作、可以在执行过程中及时恢复的 failure |
 
 ---
 
-which part of ability is missing ？ 
+what should we store to debug a trajectory ?
+
+| 信息                    | 作用                         |
+| ----------------------- | ---------------------------- |
+| `step_id`               | 这是第几步                   |
+| `agent_id / agent_name` | 谁执行了这一步               |
+| `input_context`         | 这一步 Agent 看到了什么      |
+| `output / action`       | Agent 决定了什么、输出了什么 |
+| `tool_call`             | 调了哪个工具、参数是什么     |
+| `tool_result / status`  | 工具返回什么，成功还是失败   |
+
+---
+
+which part of ability is missing ？
 
 backtracking / exploration
 task decomposition
@@ -506,38 +510,132 @@ objective quality
 
 ---
 
-what kind of benchmark we need ? 
+what kind of benchmark we need ?
 
 1. real world trajectory , GT marked from human reviewer
-2. real world trajectory , mannualy make some steps wrong , so we could have GT 
+2. real world trajectory , mannualy make some steps wrong , so we could have GT
 
 ---
 
-there is a problem 
- 
+there is a problem
+
 we know which step is wrong , but we do not know what cause this step wrong
 
-there is a gap between failure attribution and enhancement 
+there is a gap between failure attribution and enhancement
 
-a good atrribution should help recursively enhance the agent 
+a good atrribution should help recursively enhance the agent
 
 ---
 
-from traditional SE to Agent trajectory 
+from traditional SE to Agent trajectory
 
-| Agent 里的东西 | 传统软件工程里类似什么 |
-|---|---|
-| Failure taxonomy | defect classification |
+| Agent 里的东西            | 传统软件工程里类似什么                                    |
+| ------------------------- | --------------------------------------------------------- |
+| Failure taxonomy          | defect classification                                     |
 | Pattern-based attribution | spectrum-based fault localization / log anomaly detection |
-| Runtime debugging | replay / breakpoint / time-travel debugging |
-| Monitoring | distributed tracing / log observability |
-| Enhancement | program repair / configuration tuning |
+| Runtime debugging         | replay / breakpoint / time-travel debugging               |
+| Monitoring                | distributed tracing / log observability                   |
+| Enhancement               | program repair / configuration tuning                     |
 
 ---
 
-展望未来 ： 
+展望未来 ：
 
 未来更强的 Agent debugging，不只是找异常 step，而是建立“错误传播的因果图”。
 
+### [AgentEvolver: Towards Efficient Self-Evolving Agent System](https://arxiv.org/abs/2511.10395)
 
+the author give a framework , spilt the whole system into 3 parts :
 
+#### 1 self questioning
+
+automaticly generate RL tasks for trainning
+
+the agent would explore the env and use them to generate new tasks for itself to train and
+
+for the tasks generated :
+
+the author build up a filter component to filter the generated tasks , basically just use embedding model and hard-coded rules to filter tasks with duplicated symantics , and also use another teacher agent to eval if the task could be solved
+
+#### 2 self naviagtion
+
+the author found that while generating trajectory , using previous exploration experience as agent memory may enhance the trajectory quality
+
+the best trajectory curation is 50% with memory and 50 % without memory
+
+use a trick called selective boosting to train the agent
+
+while update the loss , remove the memory token in the context, so the agent would learn the policy which is act without memory
+
+and also broaden and relax the PPO style clip for the **trajectory with removed memory and positive advantages** , allowing the agent to adapt to the mismatch between training and trajecotry sampling
+
+#### 3 self attribution
+
+also used process reward and outcome reward for RL
+
+each type of reward is standardlized individually
+
+use teacher (Qwen max) to eval the trajectory , seperate it into steps , each token belongs to exactly one step , and eval each step as GOOD or BAD
+
+GOOD and BAD decides the reward for RL
+
+also teacher would give a final reward to the last step
+
+and then do a suffix sum to accumulate the rewards (classic RL trick , but without the gamma factor)
+
+and then do the GRPO RL trainning
+
+the self attribution could help converge the RL trainning faster
+
+also for a engineering tip , you need a context management snapshot to store the trajectory for RL trainning
+
+### Why OPD use reverse KL ?
+
+you see , OPD is about using trajectory from student to distill the teacher
+
+remind the KL divergence formula :
+
+$$
+D_{KL}(P||Q) = \sum_x P(x)\log\frac{P(x)}{Q(x)}
+$$
+
+and also the reverse KL divergence formula :
+
+$$
+D_{KL}(Q||P) = \sum_x Q(x)\log\frac{Q(x)}{P(x)}
+$$
+
+you can see that using Q(x) to weight the loss , the Q(x) actually fits the student trajectory distribution , which means naturally fits the RL policy gradient update , where the student policy comes with a log
+
+在用策略梯度实现反向 KL 的 OPD 中，目标是**最小化**下面的损失。
+
+$$
+D_{KL}(Q||P) = \sum_x Q(x)\log Q(x) - \sum_x Q(x)\log P(x)
+$$
+
+看学生已经生成的前缀 $h_t$。教师和学生都给学生采到的下一个 token $a_t$ 打分，把上面的损失改写成要**最大化**的逐 token 奖励，就得到
+
+$$
+r_t = \log P(a_t \mid h_t) - \log Q(a_t \mid h_t)
+$$
+
+教师比学生更看好这个 token 时，奖励为正。Thinking Machines 的实现直接把它用作该步的 advantage。[实现与伪代码](https://thinkingmachines.ai/blog/on-policy-distillation/#pseudocode)
+
+<h4 id="sft-opd-projections">SFT 的 M 投影与 OPD 的 I 投影</h4>
+
+假设 Search Agent 可以从两个地方找到证据。查论文正文，就核对原文引句。查实验表格，就核对表中数值。在演示的目标分布 $P$ 里，这两条完整路线各占 **49%**，另外两种交叉搭配各占 **1%**。为了单独看清 KL 方向的影响，我们让 SFT 的示范与 OPD 的教师服从同一个 $P$。
+
+假设学生 $Q$ **到了第二步就记不住第一步查了什么**。它以概率 $p$ 查正文，又独立地以同一个 $p$ 选择核对引句。因此，完整走通正文路线的概率是 $p^2$，走通表格路线的是 $(1-p)^2$，两种交叉搭配合计 $2p(1-p)$。点「重播」看两种投影从同一起点出发，再切换「学生初始偏好」，看看哪条路线会留下。
+
+<object type="image/svg+xml" data="{{ '/assets/img/search-agent-kl-projections.svg' | relative_url }}" aria-label="SFT 与反向 KL OPD 对三类搜索轨迹的拟合动画" style="display: block; width: 100%; max-width: 36rem; height: auto; aspect-ratio: 480 / 436; margin: 1rem auto;">
+  <a href="{{ '/assets/img/search-agent-kl-projections.svg' | relative_url }}">打开交互演示</a>
+</object>
+
+**SFT 的 M 投影（覆盖模式）。** 在固定示范上做最大似然，等价于最小化前向 KL $D_{\mathrm{KL}}(P\Vert Q)$。损失由示范分布 $P$ 加权，漏掉任何一条占 49% 的路线，都会让一大批示范在学生那里概率很低。这个学生的最优折中是 $p=0.5$，两条好路线各占 25%，但交叉搭配也占了 **50%**。
+
+**反向 KL 的 OPD 是 I 投影（寻找模式）。** 最小化 $D_{\mathrm{KL}}(Q\Vert P)$ 时，由学生分布 $Q$ 加权。学生经常走出教师很少采用的交叉路线，便会反复收到负信号。在这个例子里，偏向正文的学生最终把约 **95%** 的概率集中在正文路线，交叉搭配降到约 **4.7%**，但同样有效的表格路线也只剩约 **0.1%**。切换初始偏好，结果正好对调。
+
+- **冷启动、需要学齐多种工具时用 SFT。** 可以离线整理多条示范，教学生从正文和表格取证。局限是示范只覆盖其中出现的前缀。学生自己走偏后，很少能从这批数据里学到怎么补救。
+- **已有可用策略、需要纠正实际失误时用 OPD。** 例如学生已经查了表格，却仍准备去核对原文引句，教师可以就在这个前缀上给它反馈。代价是训练时要在线生成轨迹，还要调用教师打分。如果任务要求同时找齐多种证据，集中到单一路线也会损失召回。
+
+这里把学生刻意设弱了。如果它能表示目标分布中第二步对第一步的依赖，就能达到 $Q=P$，两个方向的 KL 都可以降到零。另外，on-policy 只规定**由学生生成训练前缀**，在这些前缀上也可以用前向 KL 等其他损失。图中讨论的是采用反向 KL 的那一种 OPD。[原文的分布视角](https://nrehiew.github.io/blog/sft_rl_opd/) · [Agarwal 等的 on-policy 蒸馏研究](https://arxiv.org/abs/2306.13649)
