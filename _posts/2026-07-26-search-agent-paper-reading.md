@@ -414,7 +414,7 @@ $$
 <!-- prettier-ignore -->
 ### A Survey for LLM Agent Trajectory Analysis:  From Failure Attribution to Enhancement
 
-![总体架构图](../assets/img/1789981933775.png)
+![总体架构图](/assets/img/1789981933775.png)
 
 一个 LLM agent system 由以下几个部分构成 ：
 
