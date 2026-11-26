@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 586" lang="zh-CN" role="group" aria-labelledby="title desc">
-  <title id="title">同一个学生，九种冷启动与后续训练组合</title>
-  <desc id="desc">学生只能移动一个窄峰，起初约百万分之一的概率发起检索。门槛左侧的样本都输出同一个直接作答动作。图下并排比较相同冷启动预算下三种方法实际采到的核对样本。两阶段均可选择 SFT、OPD 或 RL，第 14 步的菱形标出交接点。</desc>
+  <title id="title">同一个学生，SFT 与 OPD 的四种训练组合</title>
+  <desc id="desc">两个教师峰分别代表解题路径 A 和解题路径 B。学生只能移动一个窄峰，起初约百万分之一的概率尝试分步解题。门槛左侧的样本都直接作答。图下比较 SFT 和 OPD 冷启动后，有多少学生样本走到检验结果这一步。第 14 步的菱形标出交接点。</desc>
   <style>
     :root {
       color-scheme: light dark; font: 15px system-ui, sans-serif;
       --paper: #fbfaf7; --plot: #fffefa; --ink: #202b2c; --muted: #556463;
-      --rule: #c9d1cd; --grid: #e3e8e4; --terrain: #778381; --teal: #087667; --rust: #ac4923; --blue: #3366a3;
+      --rule: #c9d1cd; --grid: #e3e8e4; --terrain: #778381; --teal: #087667; --rust: #ac4923;
       color: var(--ink);
     }
     @media (prefers-color-scheme: dark) {
       :root { --paper: #202626; --plot: #232a2a; --ink: #f5f1e7; --muted: #c0cbca;
-        --rule: #53605d; --grid: #374440; --terrain: #adbcb9; --teal: #61d9bb; --rust: #ffae85; --blue: #87bbff; }
+        --rule: #53605d; --grid: #374440; --terrain: #adbcb9; --teal: #61d9bb; --rust: #ffae85; }
     }
     :root { --accent: var(--teal); }
     text { fill: var(--ink); }
@@ -35,7 +35,7 @@
     .key { display: inline-block; width: 16px; border-top: 2px solid; margin-right: 4px; vertical-align: middle; }
     .target-key { border-top-style: dashed; color: var(--terrain); }
     .sample-key { font-size: 13px; color: var(--teal); }
-    .benchmark { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 14px; font-size: 14px; }
+    .benchmark { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 14px; font-size: 14px; }
     .benchmark[hidden] { display: none; }
     .benchmark strong { grid-column: 1 / -1; font-weight: 600; }
     .benchmark span { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
@@ -97,21 +97,18 @@
     <marker id="rust-tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
       <path d="M0 0L8 4L0 8Z" fill="var(--rust)"/>
     </marker>
-    <marker id="blue-tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M0 0L8 4L0 8Z" fill="var(--blue)"/>
-    </marker>
   </defs>
   <rect width="100%" height="100%" rx="10" fill="var(--paper)"/>
   <foreignObject id="header" x="14" y="8" width="632" height="36">
     <div xmlns="http://www.w3.org/1999/xhtml" class="stagebar">
       <button class="stage" id="cold" type="button" aria-current="step" title="回到冷启动起点">冷启动</button>
       <select id="cold-method" aria-label="冷启动方法">
-        <option value="sft">SFT</option><option value="opd">OPD</option><option value="rl">RL</option>
+        <option value="sft">SFT</option><option value="opd">OPD</option>
       </select>
       <span aria-hidden="true">→</span>
       <button class="stage" id="handoff" type="button" title="跳到第 14 步的交接点">后续训练</button>
       <select id="method" aria-label="后续训练方法">
-        <option value="sft">SFT</option><option value="opd" selected="selected">OPD</option><option value="rl">RL</option>
+        <option value="sft">SFT</option><option value="opd" selected="selected">OPD</option>
       </select>
     </div>
   </foreignObject>
@@ -120,13 +117,10 @@
     <rect x="1" y="1" width="438" height="196" fill="url(#grid)"/>
     <rect x="1" y="1" width="164" height="196" fill="var(--terrain)" opacity=".065"/>
     <path d="M165 3v192" stroke="var(--terrain)" stroke-dasharray="2 3"/>
-    <text class="place" x="165" y="17">检索门槛</text>
-    <text class="place" x="76" y="39">初始检索率 ≈ 10⁻⁶</text>
+    <text class="place" x="165" y="17">分步解题门槛</text>
+    <text class="place" x="82" y="39">初始选路概率 ≈ 10⁻⁶</text>
     <use href="#target" x="272" y="145"/><use href="#target" x="345" y="58"/>
-    <g id="reward-zones" display="none" fill="var(--blue)" fill-opacity=".08" stroke="var(--blue)" stroke-opacity=".6" stroke-width="1">
-      <ellipse cx="272" cy="145" rx="33.6" ry="25.6"/><ellipse cx="345" cy="58" rx="33.6" ry="25.6"/>
-    </g>
-    <text x="272" y="189" class="place">查正文</text><text x="345" y="18" class="place">查表格</text>
+    <text x="272" y="189" class="place">解题路径 A</text><text x="345" y="18" class="place">解题路径 B</text>
     <path d="M61 143l8 8m-8 0l8 -8" fill="none" stroke="var(--muted)" stroke-width="1.6"/>
     <text x="65" y="189" class="place">起点 · 直接作答</text>
     <path id="cold-trail" class="trail" stroke="var(--teal)"/>
@@ -148,23 +142,22 @@
     </div>
   </foreignObject>
   <foreignObject id="benchmark-box" x="16" y="369" width="628" height="49">
-    <div xmlns="http://www.w3.org/1999/xhtml" class="benchmark" aria-label="三种冷启动方法的同期比较" hidden="hidden">
-      <strong>冷启动第 14 步 · 学生能核对证据的样本</strong>
+    <div xmlns="http://www.w3.org/1999/xhtml" class="benchmark" aria-label="SFT 与 OPD 冷启动的同期比较" hidden="hidden">
+      <strong>冷启动第 14 步 · 走到检验结果的学生样本</strong>
       <span style="color:var(--teal)">SFT<i></i><output id="score-sft"></output></span>
       <span style="color:var(--rust)">OPD<i></i><output id="score-opd"></output></span>
-      <span style="color:var(--blue)">RL<i></i><output id="score-rl"></output></span>
     </div>
   </foreignObject>
   <foreignObject id="coverage-box" x="16" y="420" width="628" height="119">
     <div xmlns="http://www.w3.org/1999/xhtml" class="coverage">
       <table aria-label="本批轨迹到达各步骤的比例">
-        <thead><tr><th scope="col">到达率</th><th class="stage-name" scope="col">读题</th><th class="stage-name" scope="col">发起检索</th><th class="stage-name" scope="col">打开来源</th><th class="stage-name" scope="col">核对证据</th></tr></thead>
+        <thead><tr><th scope="col">到达率</th><th class="stage-name" scope="col">读题</th><th class="stage-name" scope="col">选择路径</th><th class="stage-name" scope="col">展开推导</th><th class="stage-name" scope="col">检验结果</th></tr></thead>
         <tbody>
           <tr id="teacher-reach" class="training"><th scope="row">教师示范</th><td>100%</td><td>100%</td><td>100%</td><td>100%</td></tr>
           <tr id="student-reach"><th scope="row">学生采样</th><td>100%</td><td style="--reach:0%">0%</td><td style="--reach:0%">0%</td><td style="--reach:0%">0%</td></tr>
         </tbody>
       </table>
-      <p class="feedback"><b id="feedback-mode">SFT</b><span id="feedback">学生还没走到核对，完整示范已经能教这一步。</span></p>
+      <p class="feedback"><b id="feedback-mode">SFT</b><span id="feedback">学生尚未检验结果，示范已覆盖这一步。</span></p>
     </div>
   </foreignObject>
   <foreignObject id="toolbar" x="16" y="541" width="628" height="37">
@@ -180,13 +173,13 @@
     const coldMethod = byId("cold-method"), lateMethod = byId("method");
     const step = byId("step"), play = byId("play");
     const handoff = 14, end = Number(step.max);
-    const colors = { sft: "var(--teal)", opd: "var(--rust)", rl: "var(--blue)" };
+    const colors = { sft: "var(--teal)", opd: "var(--rust)" };
     const initial = [65, 147], routes = [[272, 145], [345, 58]], sigma = [21, 16];
     const midpoint = routes[0].map((a, k) => (a + routes[1][k]) / 2);
     const mix = (a, b, t) => a.map((v, k) => v + (b[k] - v) * t);
     const translate = ([x, y]) => "translate(" + x + " " + y + ")";
 
-    // Fresh normal draws each step; all nine paths share the same draws at that step.
+    // All method combinations share the same normal draws at each step.
     let seed = 20260726;
     function uniform() {
       seed = (Math.imul(1664525, seed) + 1013904223) >>> 0;
@@ -201,7 +194,7 @@
       }
       return offsets;
     });
-    const gateX = 165, openRadius = 3, verifyRadius = 2, successRadius = 1.6;
+    const gateX = 165, openRadius = 3, verifyRadius = 2;
     // Standard normal CDF (A&S 26.2.17). The whole half-plane below the gate
     // is observed as one action, so its likelihood is its integrated mass.
     function directMass(meanX) {
@@ -211,7 +204,7 @@
       return z < 0 ? tail : 1 - tail;
     }
     const teacherDirect = (directMass(routes[0][0]) + directMass(routes[1][0])) / 2;
-    function batch(mean, mode, offsets) {
+    function batch(mean, offsets) {
       const directScore = Math.log(teacherDirect / directMass(mean[0]));
       return offsets.map(([u, v]) => {
         const x = mean[0] + u * sigma[0], y = mean[1] + v * sigma[1];
@@ -220,13 +213,9 @@
         const distanceSquared = -2 * high;
         const searched = x >= gateX;
         const verified = searched && distanceSquared <= verifyRadius ** 2;
-        const success = searched && distanceSquared <= successRadius ** 2;
-        let signal = Number(success);
-        if (mode === "opd") {
-          signal = searched
-            ? high + Math.log((Math.exp(a - high) + Math.exp(b - high)) / 2) + (u * u + v * v) / 2
-            : directScore;
-        }
+        const signal = searched
+          ? high + Math.log((Math.exp(a - high) + Math.exp(b - high)) / 2) + (u * u + v * v) / 2
+          : directScore;
         return { x, y, offset: [u, v], signal, distanceSquared, searched, verified };
       });
     }
@@ -236,7 +225,6 @@
     }
     function trajectory(first, second, steps = end) {
       const means = [initial];
-      let rlSteps = 0;
       for (let t = 0; t < steps; t++) {
         const mean = means[t];
         const mode = t < handoff ? first : second;
@@ -245,18 +233,16 @@
           means.push(mix(mean, midpoint, 0.15));
           continue;
         }
-        const points = batch(mean, mode, batches[t]), baseline = averageSignal(points);
-        const rate = mode === "rl" ? 0.85 / (1 + 0.06 * rlSteps) : 0.16;
-        if (mode === "rl") rlSteps++;
+        const points = batch(mean, batches[t]), baseline = averageSignal(points);
         // Score-function update in standardized coordinates, using the displayed batch.
-        means.push(mean.map((m, k) => m + rate * sigma[k] * points.reduce(
+        means.push(mean.map((m, k) => m + 0.16 * sigma[k] * points.reduce(
           (sum, p) => sum + p.offset[k] * (p.signal - baseline), 0) / points.length));
       }
       return means;
     }
-    for (const mode of ["sft", "opd", "rl"]) {
+    for (const mode of ["sft", "opd"]) {
       const mean = trajectory(mode, mode, handoff)[handoff];
-      const probe = batch(mean, mode, batches[handoff]);
+      const probe = batch(mean, batches[handoff]);
       const count = probe.filter(p => p.verified).length;
       const score = byId("score-" + mode);
       score.value = count + "/" + probe.length;
@@ -266,7 +252,7 @@
     const dots = batches[0].map(() => byId("samples").appendChild(document.createElementNS(map.namespaceURI, "circle")));
     const pulls = byId("pulls").children;
     const studentCells = byId("student-reach").querySelectorAll("td");
-    function drawCoverage(points, mode, scored) {
+    function drawCoverage(points, mode) {
       const counts = [points.filter(p => p.searched).length,
         points.filter(p => p.searched && p.distanceSquared <= openRadius ** 2).length,
         points.filter(p => p.verified).length];
@@ -284,13 +270,11 @@
       const [searched, opened, verified] = counts;
       let message;
       if (mode === "sft") {
-        message = verified ? "两条完整示范都提供核对证据的练习。" : "学生还没走到核对，完整示范已经能教这一步。";
-      } else if (mode === "rl") {
-        message = scored ? "任务只按最终结果给分，得分路线带动更新。" : "本批终局奖励全为零，峰心停在原地。";
+        message = verified ? "两条路径的示范都包含检验结果这一步。" : "学生尚未检验结果，示范已覆盖这一步。";
       } else if (verified) {
-        message = "学生已经走到核对，教师可以纠正这里的选择。";
+        message = "学生已开始检验结果，教师可以在这里纠错。";
       } else if (opened || searched) {
-        message = "教师能评价已走过的检索步骤，还没有核对样本。";
+        message = "教师能评价已走过的步骤，学生尚未检验结果。";
       } else {
         message = "全批都直接作答，教师评分相同，峰心不动。";
       }
@@ -316,21 +300,17 @@
       byId("late-trail").setAttribute("stroke", colors[lateMethod.value]);
       byId("fork").setAttribute("transform", translate(means[handoff]));
       show("fork", phaseTwo);
-      show("reward-zones", mode === "rl");
       show("pulls", fixed); show("demonstrations", fixed); show("samples", !fixed);
-      const points = batch(mean, mode, batches[k]);
-      const scored = mode === "rl" ? points.filter(p => p.signal === 1).length : 0;
-      drawCoverage(points, mode, scored);
+      const points = batch(mean, batches[k]);
+      drawCoverage(points, mode);
       if (fixed) {
         byId("sample-label").textContent = "教师示范";
         routes.forEach((target, i) => pulls[i].setAttribute("d", path([mean, mix(mean, target, 0.83)])));
       } else {
         const baseline = averageSignal(points);
-        byId("sample-label").textContent = mode === "rl"
-          ? "学生采样 · " + scored + "/" + points.length + " 得分"
-          : points.some(p => p.signal > baseline) ? "学生采样 · 教师偏好亮点" : "学生采样 · 教师评分相同";
+        byId("sample-label").textContent = points.some(p => p.signal > baseline) ? "学生采样 · 教师偏好亮点" : "学生采样 · 教师评分相同";
         points.forEach(({x, y, signal}, i) => {
-          const favored = mode === "rl" ? signal === 1 : signal > baseline;
+          const favored = signal > baseline;
           dots[i].setAttribute("cx", x); dots[i].setAttribute("cy", y);
           dots[i].setAttribute("r", favored ? 2.5 : 1.8);
           dots[i].classList.toggle("favored", favored);
@@ -339,7 +319,6 @@
       const ahead = means[Math.min(k + 4, phaseTwo ? end : handoff)];
       show("next-move", !fixed && Math.hypot(ahead[0] - mean[0], ahead[1] - mean[1]) > 5);
       byId("next-move").setAttribute("d", path([mean, ahead]));
-      byId("next-move").setAttribute("marker-end", mode === "rl" ? "url(#blue-tip)" : "url(#rust-tip)");
       byId("sample-key").style.color = colors[mode];
       step.value = k;
       step.setAttribute("aria-valuetext", (phaseTwo ? "后续 " : "冷启动 ") + mode.toUpperCase() + "，第 " + k + " 步");
