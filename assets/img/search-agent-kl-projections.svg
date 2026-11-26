@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 436" lang="zh-CN" role="group" aria-labelledby="title desc">
+  <title id="title">同一个搜索学生，两个 KL 投影</title>
+  <desc id="desc">每一行是一类搜索轨迹。虚线是目标概率，M 和 I 两根色条表示同一个学生分别按两个方向的 KL 拟合后的概率。可播放、拖动步数或切换初始偏好。</desc>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #fbfaf6; --ink: #222d32; --muted: #515e62; --track: #e5e7e1;
+      --m: #117468; --i: #ae471c;
+      font: 16px system-ui, sans-serif;
+      color: var(--ink);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #202829; --ink: #f4f3e9; --muted: #c2cdca; --track: #354244;
+        --m: #65d6bf; --i: #ffa777;
+      }
+    }
+    text { fill: var(--ink); }
+    .heading { font-size: 23px; font-weight: 700; }
+    .route { font-size: 17px; font-weight: 650; }
+    .target, .value { text-anchor: end; font-variant-numeric: tabular-nums; }
+    .target { fill: var(--muted); font-size: 15px; }
+    .mark { stroke: var(--ink); stroke-width: 1.6; stroke-dasharray: 3 2; }
+    .m { fill: var(--m); }
+    .i { fill: var(--i); }
+    .bar { transition: width 150ms linear; }
+    @media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
+    .controls { display: grid; gap: 6px; }
+    .controls[hidden] { display: none; }
+    .controls div, .controls label { display: flex; align-items: center; gap: 10px; }
+    .controls button, .controls select {
+      font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--muted);
+      border-radius: 6px; min-height: 34px; padding: 2px 9px; cursor: pointer;
+    }
+    .controls button { margin-left: auto; min-width: 86px; background: var(--ink); color: var(--paper); }
+    input[type="range"] { flex: 1; min-width: 0; height: 28px; accent-color: var(--m); cursor: pointer; }
+    output { min-width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+  <defs>
+    <g id="lanes">
+      <text class="m" x="22" y="35">M</text>
+      <text class="i" x="25" y="57">I</text>
+      <rect x="50" y="25" width="330" height="9" fill="var(--track)"/>
+      <rect x="50" y="47" width="330" height="9" fill="var(--track)"/>
+    </g>
+  </defs>
+  <rect x=".5" y=".5" width="479" height="435" rx="14" fill="var(--paper)" stroke="var(--track)"/>
+  <text class="heading" x="22" y="36">学生会走哪条搜索路线？</text>
+  <g transform="translate(22 62)">
+    <circle cy="-5" r="5" cx="5" class="m"/>
+    <text x="18">SFT · M 投影</text>
+    <circle cy="-5" r="5" cx="157" class="i"/>
+    <text x="170">OPD · I 投影</text>
+    <path d="M310,-16 v19" class="mark"/>
+    <text x="320">目标 P</text>
+  </g>
+
+  <g class="trajectory" transform="translate(0 86)">
+    <text class="route" x="22" y="12">查正文 → 核对引句</text>
+    <text class="target" x="458" y="12">目标 49%</text>
+    <use href="#lanes"/>
+    <rect class="bar m" x="50" y="25" height="9" width="82.5"/>
+    <rect class="bar i" x="50" y="47" height="9" width="314.32"/>
+    <path d="M211.7,21 v39" class="mark"/>
+    <text class="value m" x="458" y="35">25.0%</text>
+    <text class="value i" x="458" y="57">95.3%</text>
+  </g>
+  <g class="trajectory" transform="translate(0 171)">
+    <text class="route" x="22" y="12">交叉搭配（两种合计）</text>
+    <text class="target" x="458" y="12">目标 2%</text>
+    <use href="#lanes"/>
+    <rect class="bar m" x="50" y="25" height="9" width="165"/>
+    <rect class="bar i" x="50" y="47" height="9" width="15.49"/>
+    <path d="M56.6,21 v39" class="mark"/>
+    <text class="value m" x="458" y="35">50.0%</text>
+    <text class="value i" x="458" y="57">4.7%</text>
+  </g>
+  <g class="trajectory" transform="translate(0 256)">
+    <text class="route" x="22" y="12">查表格 → 核对数值</text>
+    <text class="target" x="458" y="12">目标 49%</text>
+    <use href="#lanes"/>
+    <rect class="bar m" x="50" y="25" height="9" width="82.5"/>
+    <rect class="bar i" x="50" y="47" height="9" width=".19"/>
+    <path d="M211.7,21 v39" class="mark"/>
+    <text class="value m" x="458" y="35">25.0%</text>
+    <text class="value i" x="458" y="57">0.1%</text>
+  </g>
+  <path d="M22,333 h436" stroke="var(--track)"/>
+  <foreignObject x="22" y="346" width="436" height="86">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="controls" hidden="hidden">
+      <div>
+        <label>学生初始偏好
+          <select id="bias">
+            <option value="0.65">偏向正文</option>
+            <option value="0.35">偏向表格</option>
+          </select>
+        </label>
+        <button id="play" type="button">重播</button>
+      </div>
+      <label>拟合步数
+        <input id="step" type="range" min="0" max="24" value="24"/>
+        <output id="count" for="step" aria-live="off">24 / 24</output>
+      </label>
+    </div>
+  </foreignObject>
+  <script><![CDATA[
+    const bias = document.getElementById("bias");
+    const step = document.getElementById("step");
+    const play = document.getElementById("play");
+    const rows = Array.from(document.querySelectorAll(".trajectory"));
+    const maxStep = Number(step.max);
+    const trackWidth = document.querySelector("#lanes rect").width.baseVal.value;
+    let timer;
+
+    // The student independently chooses the text branch at both steps with probability p.
+    // Mirror descent updates its log odds using d(KL)/dp, with the same step size for both objectives.
+    function fit(initial, steps, reverse) {
+      let logOdds = Math.log(initial / (1 - initial));
+      for (let t = 0; t < steps; t++) {
+        const p = 1 / (1 + Math.exp(-logOdds));
+        const gradient = reverse
+          ? 2 * (logOdds + (1 - 2 * p) * Math.log(0.49 / 0.01))
+          : (2 * p - 1) / (p * (1 - p));
+        logOdds -= 0.2 * gradient;
+      }
+      const p = 1 / (1 + Math.exp(-logOdds));
+      return [p * p, 2 * p * (1 - p), (1 - p) ** 2];
+    }
+
+    function draw() {
+      const t = Number(step.value);
+      for (const method of ["m", "i"]) {
+        const probabilities = fit(Number(bias.value), t, method === "i");
+        rows.forEach((row, index) => {
+          const probability = probabilities[index];
+          row.querySelector(".bar." + method).setAttribute("width", trackWidth * probability);
+          row.querySelector(".value." + method).textContent = (100 * probability).toFixed(1) + "%";
+        });
+      }
+      document.getElementById("count").value = t + " / " + maxStep;
+      play.textContent = timer ? "暂停" : t === maxStep ? "重播" : "播放";
+    }
+
+    function pause() {
+      clearInterval(timer);
+      timer = undefined;
+    }
+    function scrub() {
+      pause();
+      draw();
+    }
+    step.addEventListener("input", scrub);
+    bias.addEventListener("change", scrub);
+    play.addEventListener("click", () => {
+      if (timer) {
+        scrub();
+        return;
+      }
+      if (Number(step.value) === maxStep) step.value = 0;
+      timer = setInterval(() => {
+        step.stepUp();
+        if (Number(step.value) === maxStep) pause();
+        draw();
+      }, 210);
+      draw();
+    });
+    document.querySelector(".controls").hidden = false;
+    draw();
+  ]]></script>
+</svg>
